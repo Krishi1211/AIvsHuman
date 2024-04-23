@@ -10,7 +10,7 @@ Phuong T. Nguyen, Juri Di Rocco, Claudio Di Sipio, Riccardo Rubei, Davide Di Rus
 
 <sup>(2)</sup> Università degli Studi del Sannio, Italy
 
-The paper is available as open access in the following [link](https://www.sciencedirect.com/science/article/pii/S0164121224001043).
+The paper is published by [the Journal of Systems and Software (JSS)](https://www.sciencedirect.com/journal/journal-of-systems-and-software), and it is available as open access in the following [link](https://www.sciencedirect.com/science/article/pii/S0164121224001043).
 
 ## Abstract
 
