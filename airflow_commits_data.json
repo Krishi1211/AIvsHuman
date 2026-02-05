@@ -1,0 +1,1010 @@
+[
+    {
+        "msg": "Fix chart elasticsearch default port 80 to 9200. (#20616)\n\n* Elasticsearch uses rather 9200 than 80 as default.",
+        "author": {
+            "name": "Sonins",
+            "email": "gmlrhks95@gmail.com"
+        },
+        "co_authors": [],
+        "committer": {
+            "name": "GitHub",
+            "email": "noreply@github.com"
+        },
+        "author_date": "2022-01-01T20:15:25+09:00",
+        "deletions": 3,
+        "insertions": 3,
+        "lines": 6,
+        "files": 2,
+        "hash": "0067d2742c68261f7ecd23936c44942204f5e6d9",
+        "modified_files": [
+            {
+                "filename": "elasticsearch-secret.yaml",
+                "old_path": "chart/templates/secrets/elasticsearch-secret.yaml",
+                "new_path": "chart/templates/secrets/elasticsearch-secret.yaml",
+                "change_type": "ModificationType.MODIFY",
+                "diff": "@@ -33,6 +33,6 @@ metadata:\n type: Opaque\n data:\n   {{- with .Values.elasticsearch.connection }}\n-  connection: {{ urlJoin (dict \"scheme\" (default \"http\" .scheme) \"userinfo\" (printf \"%s:%s\" (.user | urlquery) (.pass | urlquery)) \"host\" (printf \"%s:%s\" .host ((default 80 .port) | toString) ) ) | b64enc | quote }}\n+  connection: {{ urlJoin (dict \"scheme\" (default \"http\" .scheme) \"userinfo\" (printf \"%s:%s\" (.user | urlquery) (.pass | urlquery)) \"host\" (printf \"%s:%s\" .host ((default 9200 .port) | toString) ) ) | b64enc | quote }}\n   {{- end }}\n {{- end }}\n",
+                "diff_parsed": {
+                    "added": [
+                        [
+                            36,
+                            "  connection: {{ urlJoin (dict \"scheme\" (default \"http\" .scheme) \"userinfo\" (printf \"%s:%s\" (.user | urlquery) (.pass | urlquery)) \"host\" (printf \"%s:%s\" .host ((default 9200 .port) | toString) ) ) | b64enc | quote }}"
+                        ]
+                    ],
+                    "deleted": [
+                        [
+                            36,
+                            "  connection: {{ urlJoin (dict \"scheme\" (default \"http\" .scheme) \"userinfo\" (printf \"%s:%s\" (.user | urlquery) (.pass | urlquery)) \"host\" (printf \"%s:%s\" .host ((default 80 .port) | toString) ) ) | b64enc | quote }}"
+                        ]
+                    ]
+                },
+                "added_lines": 1,
+                "deleted_lines": 1,
+                "source_code": "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n\n################################\n## Elasticsearch Secret\n#################################\n{{- if (and .Values.elasticsearch.enabled (not .Values.elasticsearch.secretName)) }}\nkind: Secret\napiVersion: v1\nmetadata:\n  name: {{ .Release.Name }}-elasticsearch\n  labels:\n    release: {{ .Release.Name }}\n    chart: {{ .Chart.Name }}\n    heritage: {{ .Release.Service }}\n{{- with .Values.labels }}\n{{ toYaml . | indent 4 }}\n{{- end }}\ntype: Opaque\ndata:\n  {{- with .Values.elasticsearch.connection }}\n  connection: {{ urlJoin (dict \"scheme\" (default \"http\" .scheme) \"userinfo\" (printf \"%s:%s\" (.user | urlquery) (.pass | urlquery)) \"host\" (printf \"%s:%s\" .host ((default 9200 .port) | toString) ) ) | b64enc | quote }}\n  {{- end }}\n{{- end }}\n",
+                "source_code_before": "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n\n################################\n## Elasticsearch Secret\n#################################\n{{- if (and .Values.elasticsearch.enabled (not .Values.elasticsearch.secretName)) }}\nkind: Secret\napiVersion: v1\nmetadata:\n  name: {{ .Release.Name }}-elasticsearch\n  labels:\n    release: {{ .Release.Name }}\n    chart: {{ .Chart.Name }}\n    heritage: {{ .Release.Service }}\n{{- with .Values.labels }}\n{{ toYaml . | indent 4 }}\n{{- end }}\ntype: Opaque\ndata:\n  {{- with .Values.elasticsearch.connection }}\n  connection: {{ urlJoin (dict \"scheme\" (default \"http\" .scheme) \"userinfo\" (printf \"%s:%s\" (.user | urlquery) (.pass | urlquery)) \"host\" (printf \"%s:%s\" .host ((default 80 .port) | toString) ) ) | b64enc | quote }}\n  {{- end }}\n{{- end }}\n",
+                "nloc": null,
+                "complexity": null,
+                "token_count": null,
+                "methods": [],
+                "changed_methods": []
+            },
+            {
+                "filename": "test_elasticsearch_secret.py",
+                "old_path": "chart/tests/test_elasticsearch_secret.py",
+                "new_path": "chart/tests/test_elasticsearch_secret.py",
+                "change_type": "ModificationType.MODIFY",
+                "diff": "@@ -95,7 +95,7 @@ class ElasticsearchSecretTest(unittest.TestCase):\n \n         assert (\n             \"http://username%21%40%23$%25%25%5E&%2A%28%29:password%21%40%23$%25%25%5E&%2A%28%29@\"\n-            \"elastichostname:80\" == connection\n+            \"elastichostname:9200\" == connection\n         )\n \n     def test_should_generate_secret_with_specified_port(self):\n@@ -131,4 +131,4 @@ class ElasticsearchSecretTest(unittest.TestCase):\n             }\n         )\n \n-        assert f\"{scheme}://username:password@elastichostname:80\" == connection\n+        assert f\"{scheme}://username:password@elastichostname:9200\" == connection\n",
+                "diff_parsed": {
+                    "added": [
+                        [
+                            98,
+                            "            \"elastichostname:9200\" == connection"
+                        ],
+                        [
+                            134,
+                            "        assert f\"{scheme}://username:password@elastichostname:9200\" == connection"
+                        ]
+                    ],
+                    "deleted": [
+                        [
+                            98,
+                            "            \"elastichostname:80\" == connection"
+                        ],
+                        [
+                            134,
+                            "        assert f\"{scheme}://username:password@elastichostname:80\" == connection"
+                        ]
+                    ]
+                },
+                "added_lines": 2,
+                "deleted_lines": 2,
+                "source_code": "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n\nimport base64\nimport unittest\nfrom subprocess import CalledProcessError\n\nimport jmespath\nfrom parameterized import parameterized\n\nfrom tests.helm_template_generator import render_chart\n\n\nclass ElasticsearchSecretTest(unittest.TestCase):\n    def test_should_not_generate_a_document_if_elasticsearch_disabled(self):\n\n        docs = render_chart(\n            values={\"elasticsearch\": {\"enabled\": False}},\n            show_only=[\"templates/secrets/elasticsearch-secret.yaml\"],\n        )\n\n        assert 0 == len(docs)\n\n    def test_should_raise_error_when_connection_not_provided(self):\n        with self.assertRaises(CalledProcessError) as ex_ctx:\n            render_chart(\n                values={\n                    \"elasticsearch\": {\n                        \"enabled\": True,\n                    }\n                },\n                show_only=[\"templates/secrets/elasticsearch-secret.yaml\"],\n            )\n        assert (\n            \"You must set one of the values elasticsearch.secretName or elasticsearch.connection \"\n            \"when using a Elasticsearch\" in ex_ctx.exception.stderr.decode()\n        )\n\n    def test_should_raise_error_when_conflicting_options(self):\n        with self.assertRaises(CalledProcessError) as ex_ctx:\n            render_chart(\n                values={\n                    \"elasticsearch\": {\n                        \"enabled\": True,\n                        \"secretName\": \"my-test\",\n                        \"connection\": {\n                            \"user\": \"username!@#$%%^&*()\",\n                            \"pass\": \"password!@#$%%^&*()\",\n                            \"host\": \"elastichostname\",\n                        },\n                    },\n                },\n                show_only=[\"templates/secrets/elasticsearch-secret.yaml\"],\n            )\n        assert (\n            \"You must not set both values elasticsearch.secretName and elasticsearch.connection\"\n            in ex_ctx.exception.stderr.decode()\n        )\n\n    def _get_connection(self, values: dict) -> str:\n        docs = render_chart(\n            values=values,\n            show_only=[\"templates/secrets/elasticsearch-secret.yaml\"],\n        )\n        encoded_connection = jmespath.search(\"data.connection\", docs[0])\n        return base64.b64decode(encoded_connection).decode()\n\n    def test_should_correctly_handle_password_with_special_characters(self):\n        connection = self._get_connection(\n            {\n                \"elasticsearch\": {\n                    \"enabled\": True,\n                    \"connection\": {\n                        \"user\": \"username!@#$%%^&*()\",\n                        \"pass\": \"password!@#$%%^&*()\",\n                        \"host\": \"elastichostname\",\n                    },\n                }\n            }\n        )\n\n        assert (\n            \"http://username%21%40%23$%25%25%5E&%2A%28%29:password%21%40%23$%25%25%5E&%2A%28%29@\"\n            \"elastichostname:9200\" == connection\n        )\n\n    def test_should_generate_secret_with_specified_port(self):\n        connection = self._get_connection(\n            {\n                \"elasticsearch\": {\n                    \"enabled\": True,\n                    \"connection\": {\n                        \"user\": \"username\",\n                        \"pass\": \"password\",\n                        \"host\": \"elastichostname\",\n                        \"port\": 2222,\n                    },\n                }\n            }\n        )\n\n        assert \"http://username:password@elastichostname:2222\" == connection\n\n    @parameterized.expand([\"http\", \"https\"])\n    def test_should_generate_secret_with_specified_schemes(self, scheme):\n        connection = self._get_connection(\n            {\n                \"elasticsearch\": {\n                    \"enabled\": True,\n                    \"connection\": {\n                        \"scheme\": scheme,\n                        \"user\": \"username\",\n                        \"pass\": \"password\",\n                        \"host\": \"elastichostname\",\n                    },\n                }\n            }\n        )\n\n        assert f\"{scheme}://username:password@elastichostname:9200\" == connection\n",
+                "source_code_before": "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n\nimport base64\nimport unittest\nfrom subprocess import CalledProcessError\n\nimport jmespath\nfrom parameterized import parameterized\n\nfrom tests.helm_template_generator import render_chart\n\n\nclass ElasticsearchSecretTest(unittest.TestCase):\n    def test_should_not_generate_a_document_if_elasticsearch_disabled(self):\n\n        docs = render_chart(\n            values={\"elasticsearch\": {\"enabled\": False}},\n            show_only=[\"templates/secrets/elasticsearch-secret.yaml\"],\n        )\n\n        assert 0 == len(docs)\n\n    def test_should_raise_error_when_connection_not_provided(self):\n        with self.assertRaises(CalledProcessError) as ex_ctx:\n            render_chart(\n                values={\n                    \"elasticsearch\": {\n                        \"enabled\": True,\n                    }\n                },\n                show_only=[\"templates/secrets/elasticsearch-secret.yaml\"],\n            )\n        assert (\n            \"You must set one of the values elasticsearch.secretName or elasticsearch.connection \"\n            \"when using a Elasticsearch\" in ex_ctx.exception.stderr.decode()\n        )\n\n    def test_should_raise_error_when_conflicting_options(self):\n        with self.assertRaises(CalledProcessError) as ex_ctx:\n            render_chart(\n                values={\n                    \"elasticsearch\": {\n                        \"enabled\": True,\n                        \"secretName\": \"my-test\",\n                        \"connection\": {\n                            \"user\": \"username!@#$%%^&*()\",\n                            \"pass\": \"password!@#$%%^&*()\",\n                            \"host\": \"elastichostname\",\n                        },\n                    },\n                },\n                show_only=[\"templates/secrets/elasticsearch-secret.yaml\"],\n            )\n        assert (\n            \"You must not set both values elasticsearch.secretName and elasticsearch.connection\"\n            in ex_ctx.exception.stderr.decode()\n        )\n\n    def _get_connection(self, values: dict) -> str:\n        docs = render_chart(\n            values=values,\n            show_only=[\"templates/secrets/elasticsearch-secret.yaml\"],\n        )\n        encoded_connection = jmespath.search(\"data.connection\", docs[0])\n        return base64.b64decode(encoded_connection).decode()\n\n    def test_should_correctly_handle_password_with_special_characters(self):\n        connection = self._get_connection(\n            {\n                \"elasticsearch\": {\n                    \"enabled\": True,\n                    \"connection\": {\n                        \"user\": \"username!@#$%%^&*()\",\n                        \"pass\": \"password!@#$%%^&*()\",\n                        \"host\": \"elastichostname\",\n                    },\n                }\n            }\n        )\n\n        assert (\n            \"http://username%21%40%23$%25%25%5E&%2A%28%29:password%21%40%23$%25%25%5E&%2A%28%29@\"\n            \"elastichostname:80\" == connection\n        )\n\n    def test_should_generate_secret_with_specified_port(self):\n        connection = self._get_connection(\n            {\n                \"elasticsearch\": {\n                    \"enabled\": True,\n                    \"connection\": {\n                        \"user\": \"username\",\n                        \"pass\": \"password\",\n                        \"host\": \"elastichostname\",\n                        \"port\": 2222,\n                    },\n                }\n            }\n        )\n\n        assert \"http://username:password@elastichostname:2222\" == connection\n\n    @parameterized.expand([\"http\", \"https\"])\n    def test_should_generate_secret_with_specified_schemes(self, scheme):\n        connection = self._get_connection(\n            {\n                \"elasticsearch\": {\n                    \"enabled\": True,\n                    \"connection\": {\n                        \"scheme\": scheme,\n                        \"user\": \"username\",\n                        \"pass\": \"password\",\n                        \"host\": \"elastichostname\",\n                    },\n                }\n            }\n        )\n\n        assert f\"{scheme}://username:password@elastichostname:80\" == connection\n",
+                "nloc": 102,
+                "complexity": 7,
+                "token_count": 399,
+                "methods": [
+                    {
+                        "name": "test_should_not_generate_a_document_if_elasticsearch_disabled",
+                        "long_name": "test_should_not_generate_a_document_if_elasticsearch_disabled( self )",
+                        "start_line": 29,
+                        "end_line": 36,
+                        "complexity": 1,
+                        "nloc": 6,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_should_raise_error_when_connection_not_provided",
+                        "long_name": "test_should_raise_error_when_connection_not_provided( self )",
+                        "start_line": 38,
+                        "end_line": 51,
+                        "complexity": 1,
+                        "nloc": 14,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_should_raise_error_when_conflicting_options",
+                        "long_name": "test_should_raise_error_when_conflicting_options( self )",
+                        "start_line": 53,
+                        "end_line": 72,
+                        "complexity": 1,
+                        "nloc": 20,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "_get_connection",
+                        "long_name": "_get_connection( self , values : dict )",
+                        "start_line": 74,
+                        "end_line": 80,
+                        "complexity": 1,
+                        "nloc": 7,
+                        "params": [
+                            "self",
+                            "values"
+                        ]
+                    },
+                    {
+                        "name": "test_should_correctly_handle_password_with_special_characters",
+                        "long_name": "test_should_correctly_handle_password_with_special_characters( self )",
+                        "start_line": 82,
+                        "end_line": 99,
+                        "complexity": 1,
+                        "nloc": 17,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_should_generate_secret_with_specified_port",
+                        "long_name": "test_should_generate_secret_with_specified_port( self )",
+                        "start_line": 101,
+                        "end_line": 116,
+                        "complexity": 1,
+                        "nloc": 15,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_should_generate_secret_with_specified_schemes",
+                        "long_name": "test_should_generate_secret_with_specified_schemes( self , scheme )",
+                        "start_line": 119,
+                        "end_line": 134,
+                        "complexity": 1,
+                        "nloc": 15,
+                        "params": [
+                            "self",
+                            "scheme"
+                        ]
+                    }
+                ],
+                "changed_methods": [
+                    {
+                        "name": "test_should_generate_secret_with_specified_schemes",
+                        "long_name": "test_should_generate_secret_with_specified_schemes( self , scheme )",
+                        "start_line": 119,
+                        "end_line": 134
+                    },
+                    {
+                        "name": "test_should_correctly_handle_password_with_special_characters",
+                        "long_name": "test_should_correctly_handle_password_with_special_characters( self )",
+                        "start_line": 82,
+                        "end_line": 99
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "msg": "Fix mypy apache beam operators (#20610)",
+        "author": {
+            "name": "Kanthi",
+            "email": "subkanthi@gmail.com"
+        },
+        "co_authors": [],
+        "committer": {
+            "name": "GitHub",
+            "email": "noreply@github.com"
+        },
+        "author_date": "2022-01-01T07:16:58-05:00",
+        "deletions": 17,
+        "insertions": 23,
+        "lines": 40,
+        "files": 2,
+        "hash": "a71332ebc6375ba9907c84103a7e8f774ba9001a",
+        "modified_files": [
+            {
+                "filename": "beam.py",
+                "old_path": "airflow/providers/apache/beam/operators/beam.py",
+                "new_path": "airflow/providers/apache/beam/operators/beam.py",
+                "change_type": "ModificationType.MODIFY",
+                "diff": "@@ -251,7 +251,7 @@ class BeamRunPythonPipelineOperator(BaseOperator, BeamDataflowMixin):\n                 tmp_gcs_file = exit_stack.enter_context(gcs_hook.provide_file(object_url=self.py_file))\n                 self.py_file = tmp_gcs_file.name\n \n-            if is_dataflow:\n+            if is_dataflow and self.dataflow_hook:\n                 with self.dataflow_hook.provide_authorized_gcloud():\n                     self.beam_hook.start_python_pipeline(\n                         variables=formatted_pipeline_options,\n@@ -263,12 +263,13 @@ class BeamRunPythonPipelineOperator(BaseOperator, BeamDataflowMixin):\n                         process_line_callback=process_line_callback,\n                     )\n \n-                self.dataflow_hook.wait_for_done(\n-                    job_name=dataflow_job_name,\n-                    location=self.dataflow_config.location,\n-                    job_id=self.dataflow_job_id,\n-                    multiple_jobs=False,\n-                )\n+                if dataflow_job_name and self.dataflow_config.location:\n+                    self.dataflow_hook.wait_for_done(\n+                        job_name=dataflow_job_name,\n+                        location=self.dataflow_config.location,\n+                        job_id=self.dataflow_job_id,\n+                        multiple_jobs=False,\n+                    )\n \n             else:\n                 self.beam_hook.start_python_pipeline(\n@@ -420,7 +421,7 @@ class BeamRunJavaPipelineOperator(BaseOperator, BeamDataflowMixin):\n                 tmp_gcs_file = exit_stack.enter_context(gcs_hook.provide_file(object_url=self.jar))\n                 self.jar = tmp_gcs_file.name\n \n-            if is_dataflow:\n+            if is_dataflow and self.dataflow_hook:\n                 is_running = False\n                 if self.dataflow_config.check_if_running != CheckJobRunning.IgnoreJob:\n                     is_running = (\n@@ -454,14 +455,19 @@ class BeamRunJavaPipelineOperator(BaseOperator, BeamDataflowMixin):\n                             job_class=self.job_class,\n                             process_line_callback=process_line_callback,\n                         )\n-                    self.dataflow_hook.wait_for_done(\n-                        job_name=dataflow_job_name,\n-                        location=self.dataflow_config.location,\n-                        job_id=self.dataflow_job_id,\n-                        multiple_jobs=self.dataflow_config.multiple_jobs,\n-                        project_id=self.dataflow_config.project_id,\n-                    )\n-\n+                    if dataflow_job_name and self.dataflow_config.location:\n+                        multiple_jobs = (\n+                            self.dataflow_config.multiple_jobs\n+                            if self.dataflow_config.multiple_jobs\n+                            else False\n+                        )\n+                        self.dataflow_hook.wait_for_done(\n+                            job_name=dataflow_job_name,\n+                            location=self.dataflow_config.location,\n+                            job_id=self.dataflow_job_id,\n+                            multiple_jobs=multiple_jobs,\n+                            project_id=self.dataflow_config.project_id,\n+                        )\n             else:\n                 self.beam_hook.start_java_pipeline(\n                     variables=pipeline_options,\n",
+                "diff_parsed": {
+                    "added": [
+                        [
+                            254,
+                            "            if is_dataflow and self.dataflow_hook:"
+                        ],
+                        [
+                            266,
+                            "                if dataflow_job_name and self.dataflow_config.location:"
+                        ],
+                        [
+                            267,
+                            "                    self.dataflow_hook.wait_for_done("
+                        ],
+                        [
+                            268,
+                            "                        job_name=dataflow_job_name,"
+                        ],
+                        [
+                            269,
+                            "                        location=self.dataflow_config.location,"
+                        ],
+                        [
+                            270,
+                            "                        job_id=self.dataflow_job_id,"
+                        ],
+                        [
+                            271,
+                            "                        multiple_jobs=False,"
+                        ],
+                        [
+                            272,
+                            "                    )"
+                        ],
+                        [
+                            424,
+                            "            if is_dataflow and self.dataflow_hook:"
+                        ],
+                        [
+                            458,
+                            "                    if dataflow_job_name and self.dataflow_config.location:"
+                        ],
+                        [
+                            459,
+                            "                        multiple_jobs = ("
+                        ],
+                        [
+                            460,
+                            "                            self.dataflow_config.multiple_jobs"
+                        ],
+                        [
+                            461,
+                            "                            if self.dataflow_config.multiple_jobs"
+                        ],
+                        [
+                            462,
+                            "                            else False"
+                        ],
+                        [
+                            463,
+                            "                        )"
+                        ],
+                        [
+                            464,
+                            "                        self.dataflow_hook.wait_for_done("
+                        ],
+                        [
+                            465,
+                            "                            job_name=dataflow_job_name,"
+                        ],
+                        [
+                            466,
+                            "                            location=self.dataflow_config.location,"
+                        ],
+                        [
+                            467,
+                            "                            job_id=self.dataflow_job_id,"
+                        ],
+                        [
+                            468,
+                            "                            multiple_jobs=multiple_jobs,"
+                        ],
+                        [
+                            469,
+                            "                            project_id=self.dataflow_config.project_id,"
+                        ],
+                        [
+                            470,
+                            "                        )"
+                        ]
+                    ],
+                    "deleted": [
+                        [
+                            254,
+                            "            if is_dataflow:"
+                        ],
+                        [
+                            266,
+                            "                self.dataflow_hook.wait_for_done("
+                        ],
+                        [
+                            267,
+                            "                    job_name=dataflow_job_name,"
+                        ],
+                        [
+                            268,
+                            "                    location=self.dataflow_config.location,"
+                        ],
+                        [
+                            269,
+                            "                    job_id=self.dataflow_job_id,"
+                        ],
+                        [
+                            270,
+                            "                    multiple_jobs=False,"
+                        ],
+                        [
+                            271,
+                            "                )"
+                        ],
+                        [
+                            423,
+                            "            if is_dataflow:"
+                        ],
+                        [
+                            457,
+                            "                    self.dataflow_hook.wait_for_done("
+                        ],
+                        [
+                            458,
+                            "                        job_name=dataflow_job_name,"
+                        ],
+                        [
+                            459,
+                            "                        location=self.dataflow_config.location,"
+                        ],
+                        [
+                            460,
+                            "                        job_id=self.dataflow_job_id,"
+                        ],
+                        [
+                            461,
+                            "                        multiple_jobs=self.dataflow_config.multiple_jobs,"
+                        ],
+                        [
+                            462,
+                            "                        project_id=self.dataflow_config.project_id,"
+                        ],
+                        [
+                            463,
+                            "                    )"
+                        ],
+                        [
+                            464,
+                            ""
+                        ]
+                    ]
+                },
+                "added_lines": 22,
+                "deleted_lines": 16,
+                "source_code": "#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n\"\"\"This module contains Apache Beam operators.\"\"\"\nimport copy\nfrom abc import ABCMeta\nfrom contextlib import ExitStack\nfrom typing import TYPE_CHECKING, Callable, List, Optional, Sequence, Tuple, Union\n\nfrom airflow.models import BaseOperator\nfrom airflow.providers.apache.beam.hooks.beam import BeamHook, BeamRunnerType\nfrom airflow.providers.google.cloud.hooks.dataflow import (\n    DataflowHook,\n    process_line_and_extract_dataflow_job_id_callback,\n)\nfrom airflow.providers.google.cloud.hooks.gcs import GCSHook\nfrom airflow.providers.google.cloud.operators.dataflow import CheckJobRunning, DataflowConfiguration\nfrom airflow.utils.helpers import convert_camel_to_snake\nfrom airflow.version import version\n\nif TYPE_CHECKING:\n    from airflow.utils.context import Context\n\n\nclass BeamDataflowMixin(metaclass=ABCMeta):\n    \"\"\"\n    Helper class to store common, Dataflow specific logic for both\n    :class:`~airflow.providers.apache.beam.operators.beam.BeamRunPythonPipelineOperator` and\n    :class:`~airflow.providers.apache.beam.operators.beam.BeamRunJavaPipelineOperator`.\n    \"\"\"\n\n    dataflow_hook: Optional[DataflowHook]\n    dataflow_config: DataflowConfiguration\n    gcp_conn_id: str\n    delegate_to: Optional[str]\n\n    def _set_dataflow(\n        self, pipeline_options: dict, job_name_variable_key: Optional[str] = None\n    ) -> Tuple[str, dict, Callable[[str], None]]:\n        self.dataflow_hook = self.__set_dataflow_hook()\n        self.dataflow_config.project_id = self.dataflow_config.project_id or self.dataflow_hook.project_id\n        dataflow_job_name = self.__get_dataflow_job_name()\n        pipeline_options = self.__get_dataflow_pipeline_options(\n            pipeline_options, dataflow_job_name, job_name_variable_key\n        )\n        process_line_callback = self.__get_dataflow_process_callback()\n        return dataflow_job_name, pipeline_options, process_line_callback\n\n    def __set_dataflow_hook(self) -> DataflowHook:\n        self.dataflow_hook = DataflowHook(\n            gcp_conn_id=self.dataflow_config.gcp_conn_id or self.gcp_conn_id,\n            delegate_to=self.dataflow_config.delegate_to or self.delegate_to,\n            poll_sleep=self.dataflow_config.poll_sleep,\n            impersonation_chain=self.dataflow_config.impersonation_chain,\n            drain_pipeline=self.dataflow_config.drain_pipeline,\n            cancel_timeout=self.dataflow_config.cancel_timeout,\n            wait_until_finished=self.dataflow_config.wait_until_finished,\n        )\n        return self.dataflow_hook\n\n    def __get_dataflow_job_name(self) -> str:\n        return DataflowHook.build_dataflow_job_name(\n            self.dataflow_config.job_name, self.dataflow_config.append_job_name\n        )\n\n    def __get_dataflow_pipeline_options(\n        self, pipeline_options: dict, job_name: str, job_name_key: Optional[str] = None\n    ) -> dict:\n        pipeline_options = copy.deepcopy(pipeline_options)\n        if job_name_key is not None:\n            pipeline_options[job_name_key] = job_name\n        pipeline_options[\"project\"] = self.dataflow_config.project_id\n        pipeline_options[\"region\"] = self.dataflow_config.location\n        pipeline_options.setdefault(\"labels\", {}).update(\n            {\"airflow-version\": \"v\" + version.replace(\".\", \"-\").replace(\"+\", \"-\")}\n        )\n        return pipeline_options\n\n    def __get_dataflow_process_callback(self) -> Callable[[str], None]:\n        def set_current_dataflow_job_id(job_id):\n            self.dataflow_job_id = job_id\n\n        return process_line_and_extract_dataflow_job_id_callback(\n            on_new_job_id_callback=set_current_dataflow_job_id\n        )\n\n\nclass BeamRunPythonPipelineOperator(BaseOperator, BeamDataflowMixin):\n    \"\"\"\n    Launching Apache Beam pipelines written in Python. Note that both\n    ``default_pipeline_options`` and ``pipeline_options`` will be merged to specify pipeline\n    execution parameter, and ``default_pipeline_options`` is expected to save\n    high-level options, for instances, project and zone information, which\n    apply to all beam operators in the DAG.\n\n    .. seealso::\n        For more information on how to use this operator, take a look at the guide:\n        :ref:`howto/operator:BeamRunPythonPipelineOperator`\n\n    .. seealso::\n        For more detail on Apache Beam have a look at the reference:\n        https://beam.apache.org/documentation/\n\n    :param py_file: Reference to the python Apache Beam pipeline file.py, e.g.,\n        /some/local/file/path/to/your/python/pipeline/file. (templated)\n    :type py_file: str\n    :param runner: Runner on which pipeline will be run. By default \"DirectRunner\" is being used.\n        Other possible options: DataflowRunner, SparkRunner, FlinkRunner.\n        See: :class:`~providers.apache.beam.hooks.beam.BeamRunnerType`\n        See: https://beam.apache.org/documentation/runners/capability-matrix/\n\n    :type runner: str\n    :param py_options: Additional python options, e.g., [\"-m\", \"-v\"].\n    :type py_options: list[str]\n    :param default_pipeline_options: Map of default pipeline options.\n    :type default_pipeline_options: dict\n    :param pipeline_options: Map of pipeline options.The key must be a dictionary.\n        The value can contain different types:\n\n        * If the value is None, the single option - ``--key`` (without value) will be added.\n        * If the value is False, this option will be skipped\n        * If the value is True, the single option - ``--key`` (without value) will be added.\n        * If the value is list, the many options will be added for each key.\n          If the value is ``['A', 'B']`` and the key is ``key`` then the ``--key=A --key-B`` options\n          will be left\n        * Other value types will be replaced with the Python textual representation.\n\n        When defining labels (``labels`` option), you can also provide a dictionary.\n    :type pipeline_options: dict\n    :param py_interpreter: Python version of the beam pipeline.\n        If None, this defaults to the python3.\n        To track python versions supported by beam and related\n        issues check: https://issues.apache.org/jira/browse/BEAM-1251\n    :type py_interpreter: str\n    :param py_requirements: Additional python package(s) to install.\n        If a value is passed to this parameter, a new virtual environment has been created with\n        additional packages installed.\n\n        You could also install the apache_beam package if it is not installed on your system or you want\n        to use a different version.\n    :type py_requirements: List[str]\n    :param py_system_site_packages: Whether to include system_site_packages in your virtualenv.\n        See virtualenv documentation for more information.\n\n        This option is only relevant if the ``py_requirements`` parameter is not None.\n    :param gcp_conn_id: Optional.\n        The connection ID to use connecting to Google Cloud Storage if python file is on GCS.\n    :type gcp_conn_id: str\n    :param delegate_to:  Optional.\n        The account to impersonate using domain-wide delegation of authority,\n        if any. For this to work, the service account making the request must have\n        domain-wide delegation enabled.\n    :type delegate_to: str\n    :param dataflow_config: Dataflow configuration, used when runner type is set to DataflowRunner\n    :type dataflow_config: Union[dict, providers.google.cloud.operators.dataflow.DataflowConfiguration]\n    \"\"\"\n\n    template_fields: Sequence[str] = (\n        \"py_file\",\n        \"runner\",\n        \"pipeline_options\",\n        \"default_pipeline_options\",\n        \"dataflow_config\",\n    )\n    template_fields_renderers = {'dataflow_config': 'json', 'pipeline_options': 'json'}\n\n    def __init__(\n        self,\n        *,\n        py_file: str,\n        runner: str = \"DirectRunner\",\n        default_pipeline_options: Optional[dict] = None,\n        pipeline_options: Optional[dict] = None,\n        py_interpreter: str = \"python3\",\n        py_options: Optional[List[str]] = None,\n        py_requirements: Optional[List[str]] = None,\n        py_system_site_packages: bool = False,\n        gcp_conn_id: str = \"google_cloud_default\",\n        delegate_to: Optional[str] = None,\n        dataflow_config: Optional[Union[DataflowConfiguration, dict]] = None,\n        **kwargs,\n    ) -> None:\n        super().__init__(**kwargs)\n\n        self.py_file = py_file\n        self.runner = runner\n        self.py_options = py_options or []\n        self.default_pipeline_options = default_pipeline_options or {}\n        self.pipeline_options = pipeline_options or {}\n        self.pipeline_options.setdefault(\"labels\", {}).update(\n            {\"airflow-version\": \"v\" + version.replace(\".\", \"-\").replace(\"+\", \"-\")}\n        )\n        self.py_interpreter = py_interpreter\n        self.py_requirements = py_requirements\n        self.py_system_site_packages = py_system_site_packages\n        self.gcp_conn_id = gcp_conn_id\n        self.delegate_to = delegate_to\n        self.beam_hook: Optional[BeamHook] = None\n        self.dataflow_hook: Optional[DataflowHook] = None\n        self.dataflow_job_id: Optional[str] = None\n\n        if dataflow_config is None:\n            self.dataflow_config = DataflowConfiguration()\n        elif isinstance(dataflow_config, dict):\n            self.dataflow_config = DataflowConfiguration(**dataflow_config)\n        else:\n            self.dataflow_config = dataflow_config\n\n        if self.dataflow_config and self.runner.lower() != BeamRunnerType.DataflowRunner.lower():\n            self.log.warning(\n                \"dataflow_config is defined but runner is different than DataflowRunner (%s)\", self.runner\n            )\n\n    def execute(self, context: 'Context'):\n        \"\"\"Execute the Apache Beam Pipeline.\"\"\"\n        self.beam_hook = BeamHook(runner=self.runner)\n        pipeline_options = self.default_pipeline_options.copy()\n        process_line_callback: Optional[Callable] = None\n        is_dataflow = self.runner.lower() == BeamRunnerType.DataflowRunner.lower()\n        dataflow_job_name: Optional[str] = None\n\n        if is_dataflow:\n            dataflow_job_name, pipeline_options, process_line_callback = self._set_dataflow(\n                pipeline_options=pipeline_options, job_name_variable_key=\"job_name\"\n            )\n\n        pipeline_options.update(self.pipeline_options)\n\n        # Convert argument names from lowerCamelCase to snake case.\n        formatted_pipeline_options = {\n            convert_camel_to_snake(key): pipeline_options[key] for key in pipeline_options\n        }\n\n        with ExitStack() as exit_stack:\n            if self.py_file.lower().startswith(\"gs://\"):\n                gcs_hook = GCSHook(self.gcp_conn_id, self.delegate_to)\n                tmp_gcs_file = exit_stack.enter_context(gcs_hook.provide_file(object_url=self.py_file))\n                self.py_file = tmp_gcs_file.name\n\n            if is_dataflow and self.dataflow_hook:\n                with self.dataflow_hook.provide_authorized_gcloud():\n                    self.beam_hook.start_python_pipeline(\n                        variables=formatted_pipeline_options,\n                        py_file=self.py_file,\n                        py_options=self.py_options,\n                        py_interpreter=self.py_interpreter,\n                        py_requirements=self.py_requirements,\n                        py_system_site_packages=self.py_system_site_packages,\n                        process_line_callback=process_line_callback,\n                    )\n\n                if dataflow_job_name and self.dataflow_config.location:\n                    self.dataflow_hook.wait_for_done(\n                        job_name=dataflow_job_name,\n                        location=self.dataflow_config.location,\n                        job_id=self.dataflow_job_id,\n                        multiple_jobs=False,\n                    )\n\n            else:\n                self.beam_hook.start_python_pipeline(\n                    variables=formatted_pipeline_options,\n                    py_file=self.py_file,\n                    py_options=self.py_options,\n                    py_interpreter=self.py_interpreter,\n                    py_requirements=self.py_requirements,\n                    py_system_site_packages=self.py_system_site_packages,\n                    process_line_callback=process_line_callback,\n                )\n\n        return {\"dataflow_job_id\": self.dataflow_job_id}\n\n    def on_kill(self) -> None:\n        if self.dataflow_hook and self.dataflow_job_id:\n            self.log.info('Dataflow job with id: `%s` was requested to be cancelled.', self.dataflow_job_id)\n            self.dataflow_hook.cancel_job(\n                job_id=self.dataflow_job_id,\n                project_id=self.dataflow_config.project_id,\n            )\n\n\nclass BeamRunJavaPipelineOperator(BaseOperator, BeamDataflowMixin):\n    \"\"\"\n    Launching Apache Beam pipelines written in Java.\n\n    Note that both\n    ``default_pipeline_options`` and ``pipeline_options`` will be merged to specify pipeline\n    execution parameter, and ``default_pipeline_options`` is expected to save\n    high-level pipeline_options, for instances, project and zone information, which\n    apply to all Apache Beam operators in the DAG.\n\n    .. seealso::\n        For more information on how to use this operator, take a look at the guide:\n        :ref:`howto/operator:BeamRunJavaPipelineOperator`\n\n    .. seealso::\n        For more detail on Apache Beam have a look at the reference:\n        https://beam.apache.org/documentation/\n\n    You need to pass the path to your jar file as a file reference with the ``jar``\n    parameter, the jar needs to be a self executing jar (see documentation here:\n    https://beam.apache.org/documentation/runners/dataflow/#self-executing-jar).\n    Use ``pipeline_options`` to pass on pipeline_options to your job.\n\n    :param jar: The reference to a self executing Apache Beam jar (templated).\n    :type jar: str\n    :param runner: Runner on which pipeline will be run. By default \"DirectRunner\" is being used.\n        See:\n        https://beam.apache.org/documentation/runners/capability-matrix/\n    :type runner: str\n    :param job_class: The name of the Apache Beam pipeline class to be executed, it\n        is often not the main class configured in the pipeline jar file.\n    :type job_class: str\n    :param default_pipeline_options: Map of default job pipeline_options.\n    :type default_pipeline_options: dict\n    :param pipeline_options: Map of job specific pipeline_options.The key must be a dictionary.\n        The value can contain different types:\n\n        * If the value is None, the single option - ``--key`` (without value) will be added.\n        * If the value is False, this option will be skipped\n        * If the value is True, the single option - ``--key`` (without value) will be added.\n        * If the value is list, the many pipeline_options will be added for each key.\n          If the value is ``['A', 'B']`` and the key is ``key`` then the ``--key=A --key-B`` pipeline_options\n          will be left\n        * Other value types will be replaced with the Python textual representation.\n\n        When defining labels (``labels`` option), you can also provide a dictionary.\n    :type pipeline_options: dict\n    :param gcp_conn_id: The connection ID to use connecting to Google Cloud Storage if jar is on GCS\n    :type gcp_conn_id: str\n    :param delegate_to: The account to impersonate using domain-wide delegation of authority,\n        if any. For this to work, the service account making the request must have\n        domain-wide delegation enabled.\n    :type delegate_to: str\n    :param dataflow_config: Dataflow configuration, used when runner type is set to DataflowRunner\n    :type dataflow_config: Union[dict, providers.google.cloud.operators.dataflow.DataflowConfiguration]\n    \"\"\"\n\n    template_fields: Sequence[str] = (\n        \"jar\",\n        \"runner\",\n        \"job_class\",\n        \"pipeline_options\",\n        \"default_pipeline_options\",\n        \"dataflow_config\",\n    )\n    template_fields_renderers = {'dataflow_config': 'json', 'pipeline_options': 'json'}\n    ui_color = \"#0273d4\"\n\n    def __init__(\n        self,\n        *,\n        jar: str,\n        runner: str = \"DirectRunner\",\n        job_class: Optional[str] = None,\n        default_pipeline_options: Optional[dict] = None,\n        pipeline_options: Optional[dict] = None,\n        gcp_conn_id: str = \"google_cloud_default\",\n        delegate_to: Optional[str] = None,\n        dataflow_config: Optional[Union[DataflowConfiguration, dict]] = None,\n        **kwargs,\n    ) -> None:\n        super().__init__(**kwargs)\n\n        self.jar = jar\n        self.runner = runner\n        self.default_pipeline_options = default_pipeline_options or {}\n        self.pipeline_options = pipeline_options or {}\n        self.job_class = job_class\n        self.gcp_conn_id = gcp_conn_id\n        self.delegate_to = delegate_to\n        self.dataflow_job_id = None\n        self.dataflow_hook: Optional[DataflowHook] = None\n        self.beam_hook: Optional[BeamHook] = None\n        self._dataflow_job_name: Optional[str] = None\n\n        if dataflow_config is None:\n            self.dataflow_config = DataflowConfiguration()\n        elif isinstance(dataflow_config, dict):\n            self.dataflow_config = DataflowConfiguration(**dataflow_config)\n        else:\n            self.dataflow_config = dataflow_config\n\n        if self.dataflow_config and self.runner.lower() != BeamRunnerType.DataflowRunner.lower():\n            self.log.warning(\n                \"dataflow_config is defined but runner is different than DataflowRunner (%s)\", self.runner\n            )\n\n    def execute(self, context: 'Context'):\n        \"\"\"Execute the Apache Beam Pipeline.\"\"\"\n        self.beam_hook = BeamHook(runner=self.runner)\n        pipeline_options = self.default_pipeline_options.copy()\n        process_line_callback: Optional[Callable] = None\n        is_dataflow = self.runner.lower() == BeamRunnerType.DataflowRunner.lower()\n        dataflow_job_name: Optional[str] = None\n\n        if is_dataflow:\n            dataflow_job_name, pipeline_options, process_line_callback = self._set_dataflow(\n                pipeline_options=pipeline_options, job_name_variable_key=None\n            )\n\n        pipeline_options.update(self.pipeline_options)\n\n        with ExitStack() as exit_stack:\n            if self.jar.lower().startswith(\"gs://\"):\n                gcs_hook = GCSHook(self.gcp_conn_id, self.delegate_to)\n                tmp_gcs_file = exit_stack.enter_context(gcs_hook.provide_file(object_url=self.jar))\n                self.jar = tmp_gcs_file.name\n\n            if is_dataflow and self.dataflow_hook:\n                is_running = False\n                if self.dataflow_config.check_if_running != CheckJobRunning.IgnoreJob:\n                    is_running = (\n                        # The reason for disable=no-value-for-parameter is that project_id parameter is\n                        # required but here is not passed, moreover it cannot be passed here.\n                        # This method is wrapped by @_fallback_to_project_id_from_variables decorator which\n                        # fallback project_id value from variables and raise error if project_id is\n                        # defined both in variables and as parameter (here is already defined in variables)\n                        self.dataflow_hook.is_job_dataflow_running(\n                            name=self.dataflow_config.job_name,\n                            variables=pipeline_options,\n                        )\n                    )\n                    while is_running and self.dataflow_config.check_if_running == CheckJobRunning.WaitForRun:\n                        # The reason for disable=no-value-for-parameter is that project_id parameter is\n                        # required but here is not passed, moreover it cannot be passed here.\n                        # This method is wrapped by @_fallback_to_project_id_from_variables decorator which\n                        # fallback project_id value from variables and raise error if project_id is\n                        # defined both in variables and as parameter (here is already defined in variables)\n\n                        is_running = self.dataflow_hook.is_job_dataflow_running(\n                            name=self.dataflow_config.job_name,\n                            variables=pipeline_options,\n                        )\n                if not is_running:\n                    pipeline_options[\"jobName\"] = dataflow_job_name\n                    with self.dataflow_hook.provide_authorized_gcloud():\n                        self.beam_hook.start_java_pipeline(\n                            variables=pipeline_options,\n                            jar=self.jar,\n                            job_class=self.job_class,\n                            process_line_callback=process_line_callback,\n                        )\n                    if dataflow_job_name and self.dataflow_config.location:\n                        multiple_jobs = (\n                            self.dataflow_config.multiple_jobs\n                            if self.dataflow_config.multiple_jobs\n                            else False\n                        )\n                        self.dataflow_hook.wait_for_done(\n                            job_name=dataflow_job_name,\n                            location=self.dataflow_config.location,\n                            job_id=self.dataflow_job_id,\n                            multiple_jobs=multiple_jobs,\n                            project_id=self.dataflow_config.project_id,\n                        )\n            else:\n                self.beam_hook.start_java_pipeline(\n                    variables=pipeline_options,\n                    jar=self.jar,\n                    job_class=self.job_class,\n                    process_line_callback=process_line_callback,\n                )\n\n        return {\"dataflow_job_id\": self.dataflow_job_id}\n\n    def on_kill(self) -> None:\n        if self.dataflow_hook and self.dataflow_job_id:\n            self.log.info('Dataflow job with id: `%s` was requested to be cancelled.', self.dataflow_job_id)\n            self.dataflow_hook.cancel_job(\n                job_id=self.dataflow_job_id,\n                project_id=self.dataflow_config.project_id,\n            )\n",
+                "source_code_before": "#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n\"\"\"This module contains Apache Beam operators.\"\"\"\nimport copy\nfrom abc import ABCMeta\nfrom contextlib import ExitStack\nfrom typing import TYPE_CHECKING, Callable, List, Optional, Sequence, Tuple, Union\n\nfrom airflow.models import BaseOperator\nfrom airflow.providers.apache.beam.hooks.beam import BeamHook, BeamRunnerType\nfrom airflow.providers.google.cloud.hooks.dataflow import (\n    DataflowHook,\n    process_line_and_extract_dataflow_job_id_callback,\n)\nfrom airflow.providers.google.cloud.hooks.gcs import GCSHook\nfrom airflow.providers.google.cloud.operators.dataflow import CheckJobRunning, DataflowConfiguration\nfrom airflow.utils.helpers import convert_camel_to_snake\nfrom airflow.version import version\n\nif TYPE_CHECKING:\n    from airflow.utils.context import Context\n\n\nclass BeamDataflowMixin(metaclass=ABCMeta):\n    \"\"\"\n    Helper class to store common, Dataflow specific logic for both\n    :class:`~airflow.providers.apache.beam.operators.beam.BeamRunPythonPipelineOperator` and\n    :class:`~airflow.providers.apache.beam.operators.beam.BeamRunJavaPipelineOperator`.\n    \"\"\"\n\n    dataflow_hook: Optional[DataflowHook]\n    dataflow_config: DataflowConfiguration\n    gcp_conn_id: str\n    delegate_to: Optional[str]\n\n    def _set_dataflow(\n        self, pipeline_options: dict, job_name_variable_key: Optional[str] = None\n    ) -> Tuple[str, dict, Callable[[str], None]]:\n        self.dataflow_hook = self.__set_dataflow_hook()\n        self.dataflow_config.project_id = self.dataflow_config.project_id or self.dataflow_hook.project_id\n        dataflow_job_name = self.__get_dataflow_job_name()\n        pipeline_options = self.__get_dataflow_pipeline_options(\n            pipeline_options, dataflow_job_name, job_name_variable_key\n        )\n        process_line_callback = self.__get_dataflow_process_callback()\n        return dataflow_job_name, pipeline_options, process_line_callback\n\n    def __set_dataflow_hook(self) -> DataflowHook:\n        self.dataflow_hook = DataflowHook(\n            gcp_conn_id=self.dataflow_config.gcp_conn_id or self.gcp_conn_id,\n            delegate_to=self.dataflow_config.delegate_to or self.delegate_to,\n            poll_sleep=self.dataflow_config.poll_sleep,\n            impersonation_chain=self.dataflow_config.impersonation_chain,\n            drain_pipeline=self.dataflow_config.drain_pipeline,\n            cancel_timeout=self.dataflow_config.cancel_timeout,\n            wait_until_finished=self.dataflow_config.wait_until_finished,\n        )\n        return self.dataflow_hook\n\n    def __get_dataflow_job_name(self) -> str:\n        return DataflowHook.build_dataflow_job_name(\n            self.dataflow_config.job_name, self.dataflow_config.append_job_name\n        )\n\n    def __get_dataflow_pipeline_options(\n        self, pipeline_options: dict, job_name: str, job_name_key: Optional[str] = None\n    ) -> dict:\n        pipeline_options = copy.deepcopy(pipeline_options)\n        if job_name_key is not None:\n            pipeline_options[job_name_key] = job_name\n        pipeline_options[\"project\"] = self.dataflow_config.project_id\n        pipeline_options[\"region\"] = self.dataflow_config.location\n        pipeline_options.setdefault(\"labels\", {}).update(\n            {\"airflow-version\": \"v\" + version.replace(\".\", \"-\").replace(\"+\", \"-\")}\n        )\n        return pipeline_options\n\n    def __get_dataflow_process_callback(self) -> Callable[[str], None]:\n        def set_current_dataflow_job_id(job_id):\n            self.dataflow_job_id = job_id\n\n        return process_line_and_extract_dataflow_job_id_callback(\n            on_new_job_id_callback=set_current_dataflow_job_id\n        )\n\n\nclass BeamRunPythonPipelineOperator(BaseOperator, BeamDataflowMixin):\n    \"\"\"\n    Launching Apache Beam pipelines written in Python. Note that both\n    ``default_pipeline_options`` and ``pipeline_options`` will be merged to specify pipeline\n    execution parameter, and ``default_pipeline_options`` is expected to save\n    high-level options, for instances, project and zone information, which\n    apply to all beam operators in the DAG.\n\n    .. seealso::\n        For more information on how to use this operator, take a look at the guide:\n        :ref:`howto/operator:BeamRunPythonPipelineOperator`\n\n    .. seealso::\n        For more detail on Apache Beam have a look at the reference:\n        https://beam.apache.org/documentation/\n\n    :param py_file: Reference to the python Apache Beam pipeline file.py, e.g.,\n        /some/local/file/path/to/your/python/pipeline/file. (templated)\n    :type py_file: str\n    :param runner: Runner on which pipeline will be run. By default \"DirectRunner\" is being used.\n        Other possible options: DataflowRunner, SparkRunner, FlinkRunner.\n        See: :class:`~providers.apache.beam.hooks.beam.BeamRunnerType`\n        See: https://beam.apache.org/documentation/runners/capability-matrix/\n\n    :type runner: str\n    :param py_options: Additional python options, e.g., [\"-m\", \"-v\"].\n    :type py_options: list[str]\n    :param default_pipeline_options: Map of default pipeline options.\n    :type default_pipeline_options: dict\n    :param pipeline_options: Map of pipeline options.The key must be a dictionary.\n        The value can contain different types:\n\n        * If the value is None, the single option - ``--key`` (without value) will be added.\n        * If the value is False, this option will be skipped\n        * If the value is True, the single option - ``--key`` (without value) will be added.\n        * If the value is list, the many options will be added for each key.\n          If the value is ``['A', 'B']`` and the key is ``key`` then the ``--key=A --key-B`` options\n          will be left\n        * Other value types will be replaced with the Python textual representation.\n\n        When defining labels (``labels`` option), you can also provide a dictionary.\n    :type pipeline_options: dict\n    :param py_interpreter: Python version of the beam pipeline.\n        If None, this defaults to the python3.\n        To track python versions supported by beam and related\n        issues check: https://issues.apache.org/jira/browse/BEAM-1251\n    :type py_interpreter: str\n    :param py_requirements: Additional python package(s) to install.\n        If a value is passed to this parameter, a new virtual environment has been created with\n        additional packages installed.\n\n        You could also install the apache_beam package if it is not installed on your system or you want\n        to use a different version.\n    :type py_requirements: List[str]\n    :param py_system_site_packages: Whether to include system_site_packages in your virtualenv.\n        See virtualenv documentation for more information.\n\n        This option is only relevant if the ``py_requirements`` parameter is not None.\n    :param gcp_conn_id: Optional.\n        The connection ID to use connecting to Google Cloud Storage if python file is on GCS.\n    :type gcp_conn_id: str\n    :param delegate_to:  Optional.\n        The account to impersonate using domain-wide delegation of authority,\n        if any. For this to work, the service account making the request must have\n        domain-wide delegation enabled.\n    :type delegate_to: str\n    :param dataflow_config: Dataflow configuration, used when runner type is set to DataflowRunner\n    :type dataflow_config: Union[dict, providers.google.cloud.operators.dataflow.DataflowConfiguration]\n    \"\"\"\n\n    template_fields: Sequence[str] = (\n        \"py_file\",\n        \"runner\",\n        \"pipeline_options\",\n        \"default_pipeline_options\",\n        \"dataflow_config\",\n    )\n    template_fields_renderers = {'dataflow_config': 'json', 'pipeline_options': 'json'}\n\n    def __init__(\n        self,\n        *,\n        py_file: str,\n        runner: str = \"DirectRunner\",\n        default_pipeline_options: Optional[dict] = None,\n        pipeline_options: Optional[dict] = None,\n        py_interpreter: str = \"python3\",\n        py_options: Optional[List[str]] = None,\n        py_requirements: Optional[List[str]] = None,\n        py_system_site_packages: bool = False,\n        gcp_conn_id: str = \"google_cloud_default\",\n        delegate_to: Optional[str] = None,\n        dataflow_config: Optional[Union[DataflowConfiguration, dict]] = None,\n        **kwargs,\n    ) -> None:\n        super().__init__(**kwargs)\n\n        self.py_file = py_file\n        self.runner = runner\n        self.py_options = py_options or []\n        self.default_pipeline_options = default_pipeline_options or {}\n        self.pipeline_options = pipeline_options or {}\n        self.pipeline_options.setdefault(\"labels\", {}).update(\n            {\"airflow-version\": \"v\" + version.replace(\".\", \"-\").replace(\"+\", \"-\")}\n        )\n        self.py_interpreter = py_interpreter\n        self.py_requirements = py_requirements\n        self.py_system_site_packages = py_system_site_packages\n        self.gcp_conn_id = gcp_conn_id\n        self.delegate_to = delegate_to\n        self.beam_hook: Optional[BeamHook] = None\n        self.dataflow_hook: Optional[DataflowHook] = None\n        self.dataflow_job_id: Optional[str] = None\n\n        if dataflow_config is None:\n            self.dataflow_config = DataflowConfiguration()\n        elif isinstance(dataflow_config, dict):\n            self.dataflow_config = DataflowConfiguration(**dataflow_config)\n        else:\n            self.dataflow_config = dataflow_config\n\n        if self.dataflow_config and self.runner.lower() != BeamRunnerType.DataflowRunner.lower():\n            self.log.warning(\n                \"dataflow_config is defined but runner is different than DataflowRunner (%s)\", self.runner\n            )\n\n    def execute(self, context: 'Context'):\n        \"\"\"Execute the Apache Beam Pipeline.\"\"\"\n        self.beam_hook = BeamHook(runner=self.runner)\n        pipeline_options = self.default_pipeline_options.copy()\n        process_line_callback: Optional[Callable] = None\n        is_dataflow = self.runner.lower() == BeamRunnerType.DataflowRunner.lower()\n        dataflow_job_name: Optional[str] = None\n\n        if is_dataflow:\n            dataflow_job_name, pipeline_options, process_line_callback = self._set_dataflow(\n                pipeline_options=pipeline_options, job_name_variable_key=\"job_name\"\n            )\n\n        pipeline_options.update(self.pipeline_options)\n\n        # Convert argument names from lowerCamelCase to snake case.\n        formatted_pipeline_options = {\n            convert_camel_to_snake(key): pipeline_options[key] for key in pipeline_options\n        }\n\n        with ExitStack() as exit_stack:\n            if self.py_file.lower().startswith(\"gs://\"):\n                gcs_hook = GCSHook(self.gcp_conn_id, self.delegate_to)\n                tmp_gcs_file = exit_stack.enter_context(gcs_hook.provide_file(object_url=self.py_file))\n                self.py_file = tmp_gcs_file.name\n\n            if is_dataflow:\n                with self.dataflow_hook.provide_authorized_gcloud():\n                    self.beam_hook.start_python_pipeline(\n                        variables=formatted_pipeline_options,\n                        py_file=self.py_file,\n                        py_options=self.py_options,\n                        py_interpreter=self.py_interpreter,\n                        py_requirements=self.py_requirements,\n                        py_system_site_packages=self.py_system_site_packages,\n                        process_line_callback=process_line_callback,\n                    )\n\n                self.dataflow_hook.wait_for_done(\n                    job_name=dataflow_job_name,\n                    location=self.dataflow_config.location,\n                    job_id=self.dataflow_job_id,\n                    multiple_jobs=False,\n                )\n\n            else:\n                self.beam_hook.start_python_pipeline(\n                    variables=formatted_pipeline_options,\n                    py_file=self.py_file,\n                    py_options=self.py_options,\n                    py_interpreter=self.py_interpreter,\n                    py_requirements=self.py_requirements,\n                    py_system_site_packages=self.py_system_site_packages,\n                    process_line_callback=process_line_callback,\n                )\n\n        return {\"dataflow_job_id\": self.dataflow_job_id}\n\n    def on_kill(self) -> None:\n        if self.dataflow_hook and self.dataflow_job_id:\n            self.log.info('Dataflow job with id: `%s` was requested to be cancelled.', self.dataflow_job_id)\n            self.dataflow_hook.cancel_job(\n                job_id=self.dataflow_job_id,\n                project_id=self.dataflow_config.project_id,\n            )\n\n\nclass BeamRunJavaPipelineOperator(BaseOperator, BeamDataflowMixin):\n    \"\"\"\n    Launching Apache Beam pipelines written in Java.\n\n    Note that both\n    ``default_pipeline_options`` and ``pipeline_options`` will be merged to specify pipeline\n    execution parameter, and ``default_pipeline_options`` is expected to save\n    high-level pipeline_options, for instances, project and zone information, which\n    apply to all Apache Beam operators in the DAG.\n\n    .. seealso::\n        For more information on how to use this operator, take a look at the guide:\n        :ref:`howto/operator:BeamRunJavaPipelineOperator`\n\n    .. seealso::\n        For more detail on Apache Beam have a look at the reference:\n        https://beam.apache.org/documentation/\n\n    You need to pass the path to your jar file as a file reference with the ``jar``\n    parameter, the jar needs to be a self executing jar (see documentation here:\n    https://beam.apache.org/documentation/runners/dataflow/#self-executing-jar).\n    Use ``pipeline_options`` to pass on pipeline_options to your job.\n\n    :param jar: The reference to a self executing Apache Beam jar (templated).\n    :type jar: str\n    :param runner: Runner on which pipeline will be run. By default \"DirectRunner\" is being used.\n        See:\n        https://beam.apache.org/documentation/runners/capability-matrix/\n    :type runner: str\n    :param job_class: The name of the Apache Beam pipeline class to be executed, it\n        is often not the main class configured in the pipeline jar file.\n    :type job_class: str\n    :param default_pipeline_options: Map of default job pipeline_options.\n    :type default_pipeline_options: dict\n    :param pipeline_options: Map of job specific pipeline_options.The key must be a dictionary.\n        The value can contain different types:\n\n        * If the value is None, the single option - ``--key`` (without value) will be added.\n        * If the value is False, this option will be skipped\n        * If the value is True, the single option - ``--key`` (without value) will be added.\n        * If the value is list, the many pipeline_options will be added for each key.\n          If the value is ``['A', 'B']`` and the key is ``key`` then the ``--key=A --key-B`` pipeline_options\n          will be left\n        * Other value types will be replaced with the Python textual representation.\n\n        When defining labels (``labels`` option), you can also provide a dictionary.\n    :type pipeline_options: dict\n    :param gcp_conn_id: The connection ID to use connecting to Google Cloud Storage if jar is on GCS\n    :type gcp_conn_id: str\n    :param delegate_to: The account to impersonate using domain-wide delegation of authority,\n        if any. For this to work, the service account making the request must have\n        domain-wide delegation enabled.\n    :type delegate_to: str\n    :param dataflow_config: Dataflow configuration, used when runner type is set to DataflowRunner\n    :type dataflow_config: Union[dict, providers.google.cloud.operators.dataflow.DataflowConfiguration]\n    \"\"\"\n\n    template_fields: Sequence[str] = (\n        \"jar\",\n        \"runner\",\n        \"job_class\",\n        \"pipeline_options\",\n        \"default_pipeline_options\",\n        \"dataflow_config\",\n    )\n    template_fields_renderers = {'dataflow_config': 'json', 'pipeline_options': 'json'}\n    ui_color = \"#0273d4\"\n\n    def __init__(\n        self,\n        *,\n        jar: str,\n        runner: str = \"DirectRunner\",\n        job_class: Optional[str] = None,\n        default_pipeline_options: Optional[dict] = None,\n        pipeline_options: Optional[dict] = None,\n        gcp_conn_id: str = \"google_cloud_default\",\n        delegate_to: Optional[str] = None,\n        dataflow_config: Optional[Union[DataflowConfiguration, dict]] = None,\n        **kwargs,\n    ) -> None:\n        super().__init__(**kwargs)\n\n        self.jar = jar\n        self.runner = runner\n        self.default_pipeline_options = default_pipeline_options or {}\n        self.pipeline_options = pipeline_options or {}\n        self.job_class = job_class\n        self.gcp_conn_id = gcp_conn_id\n        self.delegate_to = delegate_to\n        self.dataflow_job_id = None\n        self.dataflow_hook: Optional[DataflowHook] = None\n        self.beam_hook: Optional[BeamHook] = None\n        self._dataflow_job_name: Optional[str] = None\n\n        if dataflow_config is None:\n            self.dataflow_config = DataflowConfiguration()\n        elif isinstance(dataflow_config, dict):\n            self.dataflow_config = DataflowConfiguration(**dataflow_config)\n        else:\n            self.dataflow_config = dataflow_config\n\n        if self.dataflow_config and self.runner.lower() != BeamRunnerType.DataflowRunner.lower():\n            self.log.warning(\n                \"dataflow_config is defined but runner is different than DataflowRunner (%s)\", self.runner\n            )\n\n    def execute(self, context: 'Context'):\n        \"\"\"Execute the Apache Beam Pipeline.\"\"\"\n        self.beam_hook = BeamHook(runner=self.runner)\n        pipeline_options = self.default_pipeline_options.copy()\n        process_line_callback: Optional[Callable] = None\n        is_dataflow = self.runner.lower() == BeamRunnerType.DataflowRunner.lower()\n        dataflow_job_name: Optional[str] = None\n\n        if is_dataflow:\n            dataflow_job_name, pipeline_options, process_line_callback = self._set_dataflow(\n                pipeline_options=pipeline_options, job_name_variable_key=None\n            )\n\n        pipeline_options.update(self.pipeline_options)\n\n        with ExitStack() as exit_stack:\n            if self.jar.lower().startswith(\"gs://\"):\n                gcs_hook = GCSHook(self.gcp_conn_id, self.delegate_to)\n                tmp_gcs_file = exit_stack.enter_context(gcs_hook.provide_file(object_url=self.jar))\n                self.jar = tmp_gcs_file.name\n\n            if is_dataflow:\n                is_running = False\n                if self.dataflow_config.check_if_running != CheckJobRunning.IgnoreJob:\n                    is_running = (\n                        # The reason for disable=no-value-for-parameter is that project_id parameter is\n                        # required but here is not passed, moreover it cannot be passed here.\n                        # This method is wrapped by @_fallback_to_project_id_from_variables decorator which\n                        # fallback project_id value from variables and raise error if project_id is\n                        # defined both in variables and as parameter (here is already defined in variables)\n                        self.dataflow_hook.is_job_dataflow_running(\n                            name=self.dataflow_config.job_name,\n                            variables=pipeline_options,\n                        )\n                    )\n                    while is_running and self.dataflow_config.check_if_running == CheckJobRunning.WaitForRun:\n                        # The reason for disable=no-value-for-parameter is that project_id parameter is\n                        # required but here is not passed, moreover it cannot be passed here.\n                        # This method is wrapped by @_fallback_to_project_id_from_variables decorator which\n                        # fallback project_id value from variables and raise error if project_id is\n                        # defined both in variables and as parameter (here is already defined in variables)\n\n                        is_running = self.dataflow_hook.is_job_dataflow_running(\n                            name=self.dataflow_config.job_name,\n                            variables=pipeline_options,\n                        )\n                if not is_running:\n                    pipeline_options[\"jobName\"] = dataflow_job_name\n                    with self.dataflow_hook.provide_authorized_gcloud():\n                        self.beam_hook.start_java_pipeline(\n                            variables=pipeline_options,\n                            jar=self.jar,\n                            job_class=self.job_class,\n                            process_line_callback=process_line_callback,\n                        )\n                    self.dataflow_hook.wait_for_done(\n                        job_name=dataflow_job_name,\n                        location=self.dataflow_config.location,\n                        job_id=self.dataflow_job_id,\n                        multiple_jobs=self.dataflow_config.multiple_jobs,\n                        project_id=self.dataflow_config.project_id,\n                    )\n\n            else:\n                self.beam_hook.start_java_pipeline(\n                    variables=pipeline_options,\n                    jar=self.jar,\n                    job_class=self.job_class,\n                    process_line_callback=process_line_callback,\n                )\n\n        return {\"dataflow_job_id\": self.dataflow_job_id}\n\n    def on_kill(self) -> None:\n        if self.dataflow_hook and self.dataflow_job_id:\n            self.log.info('Dataflow job with id: `%s` was requested to be cancelled.', self.dataflow_job_id)\n            self.dataflow_hook.cancel_job(\n                job_id=self.dataflow_job_id,\n                project_id=self.dataflow_config.project_id,\n            )\n",
+                "nloc": 285,
+                "complexity": 51,
+                "token_count": 1909,
+                "methods": [
+                    {
+                        "name": "_set_dataflow",
+                        "long_name": "_set_dataflow( self , pipeline_options : dict , job_name_variable_key : Optional [ str ] = None )",
+                        "start_line": 51,
+                        "end_line": 61,
+                        "complexity": 2,
+                        "nloc": 11,
+                        "params": [
+                            "self",
+                            "pipeline_options",
+                            "job_name_variable_key"
+                        ]
+                    },
+                    {
+                        "name": "__set_dataflow_hook",
+                        "long_name": "__set_dataflow_hook( self )",
+                        "start_line": 63,
+                        "end_line": 73,
+                        "complexity": 3,
+                        "nloc": 11,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "__get_dataflow_job_name",
+                        "long_name": "__get_dataflow_job_name( self )",
+                        "start_line": 75,
+                        "end_line": 78,
+                        "complexity": 1,
+                        "nloc": 4,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "__get_dataflow_pipeline_options",
+                        "long_name": "__get_dataflow_pipeline_options( self , pipeline_options : dict , job_name : str , job_name_key : Optional [ str ] = None )",
+                        "start_line": 80,
+                        "end_line": 91,
+                        "complexity": 2,
+                        "nloc": 12,
+                        "params": [
+                            "self",
+                            "pipeline_options",
+                            "job_name",
+                            "job_name_key"
+                        ]
+                    },
+                    {
+                        "name": "__get_dataflow_process_callback.set_current_dataflow_job_id",
+                        "long_name": "__get_dataflow_process_callback.set_current_dataflow_job_id( job_id )",
+                        "start_line": 94,
+                        "end_line": 95,
+                        "complexity": 1,
+                        "nloc": 2,
+                        "params": [
+                            "job_id"
+                        ]
+                    },
+                    {
+                        "name": "__get_dataflow_process_callback",
+                        "long_name": "__get_dataflow_process_callback( self )",
+                        "start_line": 93,
+                        "end_line": 99,
+                        "complexity": 1,
+                        "nloc": 5,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "__init__",
+                        "long_name": "__init__( self , * , py_file : str , runner : str = \"DirectRunner\" , default_pipeline_options : Optional [ dict ] = None , pipeline_options : Optional [ dict ] = None , py_interpreter : str = \"python3\" , py_options : Optional [ List [ str ] ] = None , py_requirements : Optional [ List [ str ] ] = None , py_system_site_packages : bool = False , gcp_conn_id : str = \"google_cloud_default\" , delegate_to : Optional [ str ] = None , dataflow_config : Optional [ Union [ DataflowConfiguration , dict ] ] = None , ** kwargs , )",
+                        "start_line": 181,
+                        "end_line": 226,
+                        "complexity": 8,
+                        "nloc": 43,
+                        "params": [
+                            "self",
+                            "py_file",
+                            "runner",
+                            "default_pipeline_options",
+                            "pipeline_options",
+                            "py_interpreter",
+                            "py_options",
+                            "py_requirements",
+                            "py_system_site_packages",
+                            "gcp_conn_id",
+                            "delegate_to",
+                            "dataflow_config",
+                            "kwargs"
+                        ]
+                    },
+                    {
+                        "name": "execute",
+                        "long_name": "execute( self , context : 'Context' )",
+                        "start_line": 228,
+                        "end_line": 285,
+                        "complexity": 8,
+                        "nloc": 48,
+                        "params": [
+                            "self",
+                            "context"
+                        ]
+                    },
+                    {
+                        "name": "on_kill",
+                        "long_name": "on_kill( self )",
+                        "start_line": 287,
+                        "end_line": 293,
+                        "complexity": 3,
+                        "nloc": 7,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "__init__",
+                        "long_name": "__init__( self , * , jar : str , runner : str = \"DirectRunner\" , job_class : Optional [ str ] = None , default_pipeline_options : Optional [ dict ] = None , pipeline_options : Optional [ dict ] = None , gcp_conn_id : str = \"google_cloud_default\" , delegate_to : Optional [ str ] = None , dataflow_config : Optional [ Union [ DataflowConfiguration , dict ] ] = None , ** kwargs , )",
+                        "start_line": 364,
+                        "end_line": 401,
+                        "complexity": 7,
+                        "nloc": 35,
+                        "params": [
+                            "self",
+                            "jar",
+                            "runner",
+                            "job_class",
+                            "default_pipeline_options",
+                            "pipeline_options",
+                            "gcp_conn_id",
+                            "delegate_to",
+                            "dataflow_config",
+                            "kwargs"
+                        ]
+                    },
+                    {
+                        "name": "execute",
+                        "long_name": "execute( self , context : 'Context' )",
+                        "start_line": 403,
+                        "end_line": 479,
+                        "complexity": 12,
+                        "nloc": 60,
+                        "params": [
+                            "self",
+                            "context"
+                        ]
+                    },
+                    {
+                        "name": "on_kill",
+                        "long_name": "on_kill( self )",
+                        "start_line": 481,
+                        "end_line": 487,
+                        "complexity": 3,
+                        "nloc": 7,
+                        "params": [
+                            "self"
+                        ]
+                    }
+                ],
+                "changed_methods": [
+                    {
+                        "name": "execute",
+                        "long_name": "execute( self , context : 'Context' )",
+                        "start_line": 228,
+                        "end_line": 285
+                    }
+                ]
+            },
+            {
+                "filename": "test_beam.py",
+                "old_path": "tests/providers/apache/beam/operators/test_beam.py",
+                "new_path": "tests/providers/apache/beam/operators/test_beam.py",
+                "change_type": "ModificationType.MODIFY",
+                "diff": "@@ -246,7 +246,7 @@ class TestBeamRunJavaPipelineOperator(unittest.TestCase):\n             job_id=self.operator.dataflow_job_id,\n             job_name=job_name,\n             location='us-central1',\n-            multiple_jobs=dataflow_config.multiple_jobs,\n+            multiple_jobs=False,\n             project_id=dataflow_hook_mock.return_value.project_id,\n         )\n \n",
+                "diff_parsed": {
+                    "added": [
+                        [
+                            249,
+                            "            multiple_jobs=False,"
+                        ]
+                    ],
+                    "deleted": [
+                        [
+                            249,
+                            "            multiple_jobs=dataflow_config.multiple_jobs,"
+                        ]
+                    ]
+                },
+                "added_lines": 1,
+                "deleted_lines": 1,
+                "source_code": "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n#\nimport unittest\nfrom unittest import mock\n\nfrom airflow.providers.apache.beam.operators.beam import (\n    BeamRunJavaPipelineOperator,\n    BeamRunPythonPipelineOperator,\n)\nfrom airflow.providers.google.cloud.operators.dataflow import DataflowConfiguration\nfrom airflow.version import version\n\nTASK_ID = 'test-beam-operator'\nDEFAULT_RUNNER = \"DirectRunner\"\nJOB_NAME = 'test-dataflow-pipeline-name'\nJOB_ID = 'test-dataflow-pipeline-id'\nJAR_FILE = 'gs://my-bucket/example/test.jar'\nJOB_CLASS = 'com.test.NotMain'\nPY_FILE = 'gs://my-bucket/my-object.py'\nPY_INTERPRETER = 'python3'\nPY_OPTIONS = ['-m']\nDEFAULT_OPTIONS_PYTHON = DEFAULT_OPTIONS_JAVA = {\n    'project': 'test',\n    'stagingLocation': 'gs://test/staging',\n}\nADDITIONAL_OPTIONS = {'output': 'gs://test/output', 'labels': {'foo': 'bar'}}\nTEST_VERSION = f\"v{version.replace('.', '-').replace('+', '-')}\"\nEXPECTED_ADDITIONAL_OPTIONS = {\n    'output': 'gs://test/output',\n    'labels': {'foo': 'bar', 'airflow-version': TEST_VERSION},\n}\n\n\nclass TestBeamRunPythonPipelineOperator(unittest.TestCase):\n    def setUp(self):\n        self.operator = BeamRunPythonPipelineOperator(\n            task_id=TASK_ID,\n            py_file=PY_FILE,\n            py_options=PY_OPTIONS,\n            default_pipeline_options=DEFAULT_OPTIONS_PYTHON,\n            pipeline_options=ADDITIONAL_OPTIONS,\n        )\n\n    def test_init(self):\n        \"\"\"Test BeamRunPythonPipelineOperator instance is properly initialized.\"\"\"\n        self.assertEqual(self.operator.task_id, TASK_ID)\n        self.assertEqual(self.operator.py_file, PY_FILE)\n        self.assertEqual(self.operator.runner, DEFAULT_RUNNER)\n        self.assertEqual(self.operator.py_options, PY_OPTIONS)\n        self.assertEqual(self.operator.py_interpreter, PY_INTERPRETER)\n        self.assertEqual(self.operator.default_pipeline_options, DEFAULT_OPTIONS_PYTHON)\n        self.assertEqual(self.operator.pipeline_options, EXPECTED_ADDITIONAL_OPTIONS)\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_exec_direct_runner(self, gcs_hook, beam_hook_mock):\n        \"\"\"Test BeamHook is created and the right args are passed to\n        start_python_workflow.\n        \"\"\"\n        start_python_hook = beam_hook_mock.return_value.start_python_pipeline\n        gcs_provide_file = gcs_hook.return_value.provide_file\n        self.operator.execute(None)\n        beam_hook_mock.assert_called_once_with(runner=DEFAULT_RUNNER)\n        expected_options = {\n            'project': 'test',\n            'staging_location': 'gs://test/staging',\n            'output': 'gs://test/output',\n            'labels': {'foo': 'bar', 'airflow-version': TEST_VERSION},\n        }\n        gcs_provide_file.assert_called_once_with(object_url=PY_FILE)\n        start_python_hook.assert_called_once_with(\n            variables=expected_options,\n            py_file=gcs_provide_file.return_value.__enter__.return_value.name,\n            py_options=PY_OPTIONS,\n            py_interpreter=PY_INTERPRETER,\n            py_requirements=None,\n            py_system_site_packages=False,\n            process_line_callback=None,\n        )\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_exec_dataflow_runner(self, gcs_hook, dataflow_hook_mock, beam_hook_mock):\n        \"\"\"Test DataflowHook is created and the right args are passed to\n        start_python_dataflow.\n        \"\"\"\n        dataflow_config = DataflowConfiguration()\n        self.operator.runner = \"DataflowRunner\"\n        self.operator.dataflow_config = dataflow_config\n        gcs_provide_file = gcs_hook.return_value.provide_file\n        self.operator.execute(None)\n        job_name = dataflow_hook_mock.build_dataflow_job_name.return_value\n        dataflow_hook_mock.assert_called_once_with(\n            gcp_conn_id=dataflow_config.gcp_conn_id,\n            delegate_to=dataflow_config.delegate_to,\n            poll_sleep=dataflow_config.poll_sleep,\n            impersonation_chain=dataflow_config.impersonation_chain,\n            drain_pipeline=dataflow_config.drain_pipeline,\n            cancel_timeout=dataflow_config.cancel_timeout,\n            wait_until_finished=dataflow_config.wait_until_finished,\n        )\n        expected_options = {\n            'project': dataflow_hook_mock.return_value.project_id,\n            'job_name': job_name,\n            'staging_location': 'gs://test/staging',\n            'output': 'gs://test/output',\n            'labels': {'foo': 'bar', 'airflow-version': TEST_VERSION},\n            'region': 'us-central1',\n        }\n        gcs_provide_file.assert_called_once_with(object_url=PY_FILE)\n        beam_hook_mock.return_value.start_python_pipeline.assert_called_once_with(\n            variables=expected_options,\n            py_file=gcs_provide_file.return_value.__enter__.return_value.name,\n            py_options=PY_OPTIONS,\n            py_interpreter=PY_INTERPRETER,\n            py_requirements=None,\n            py_system_site_packages=False,\n            process_line_callback=mock.ANY,\n        )\n        dataflow_hook_mock.return_value.wait_for_done.assert_called_once_with(\n            job_id=self.operator.dataflow_job_id,\n            job_name=job_name,\n            location='us-central1',\n            multiple_jobs=False,\n        )\n        dataflow_hook_mock.return_value.provide_authorized_gcloud.assert_called_once_with()\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    def test_on_kill_dataflow_runner(self, dataflow_hook_mock, _, __):\n        self.operator.runner = \"DataflowRunner\"\n        dataflow_cancel_job = dataflow_hook_mock.return_value.cancel_job\n        self.operator.execute(None)\n        self.operator.dataflow_job_id = JOB_ID\n        self.operator.on_kill()\n        dataflow_cancel_job.assert_called_once_with(\n            job_id=JOB_ID, project_id=self.operator.dataflow_config.project_id\n        )\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_on_kill_direct_runner(self, _, dataflow_mock, __):\n        dataflow_cancel_job = dataflow_mock.return_value.cancel_job\n        self.operator.execute(None)\n        self.operator.on_kill()\n        dataflow_cancel_job.assert_not_called()\n\n\nclass TestBeamRunJavaPipelineOperator(unittest.TestCase):\n    def setUp(self):\n        self.operator = BeamRunJavaPipelineOperator(\n            task_id=TASK_ID,\n            jar=JAR_FILE,\n            job_class=JOB_CLASS,\n            default_pipeline_options=DEFAULT_OPTIONS_JAVA,\n            pipeline_options=ADDITIONAL_OPTIONS,\n        )\n\n    def test_init(self):\n        \"\"\"Test BeamRunJavaPipelineOperator instance is properly initialized.\"\"\"\n        self.assertEqual(self.operator.task_id, TASK_ID)\n        self.assertEqual(self.operator.runner, DEFAULT_RUNNER)\n        self.assertEqual(self.operator.default_pipeline_options, DEFAULT_OPTIONS_JAVA)\n        self.assertEqual(self.operator.job_class, JOB_CLASS)\n        self.assertEqual(self.operator.jar, JAR_FILE)\n        self.assertEqual(self.operator.pipeline_options, ADDITIONAL_OPTIONS)\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_exec_direct_runner(self, gcs_hook, beam_hook_mock):\n        \"\"\"Test BeamHook is created and the right args are passed to\n        start_java_workflow.\n        \"\"\"\n        start_java_hook = beam_hook_mock.return_value.start_java_pipeline\n        gcs_provide_file = gcs_hook.return_value.provide_file\n        self.operator.execute(None)\n\n        beam_hook_mock.assert_called_once_with(runner=DEFAULT_RUNNER)\n        gcs_provide_file.assert_called_once_with(object_url=JAR_FILE)\n        start_java_hook.assert_called_once_with(\n            variables={**DEFAULT_OPTIONS_JAVA, **ADDITIONAL_OPTIONS},\n            jar=gcs_provide_file.return_value.__enter__.return_value.name,\n            job_class=JOB_CLASS,\n            process_line_callback=None,\n        )\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_exec_dataflow_runner(self, gcs_hook, dataflow_hook_mock, beam_hook_mock):\n        \"\"\"Test DataflowHook is created and the right args are passed to\n        start_java_dataflow.\n        \"\"\"\n        dataflow_config = DataflowConfiguration()\n        self.operator.runner = \"DataflowRunner\"\n        self.operator.dataflow_config = dataflow_config\n        gcs_provide_file = gcs_hook.return_value.provide_file\n        dataflow_hook_mock.return_value.is_job_dataflow_running.return_value = False\n        self.operator.execute(None)\n        job_name = dataflow_hook_mock.build_dataflow_job_name.return_value\n        dataflow_hook_mock.assert_called_once_with(\n            gcp_conn_id=dataflow_config.gcp_conn_id,\n            delegate_to=dataflow_config.delegate_to,\n            poll_sleep=dataflow_config.poll_sleep,\n            impersonation_chain=dataflow_config.impersonation_chain,\n            drain_pipeline=dataflow_config.drain_pipeline,\n            cancel_timeout=dataflow_config.cancel_timeout,\n            wait_until_finished=dataflow_config.wait_until_finished,\n        )\n        gcs_provide_file.assert_called_once_with(object_url=JAR_FILE)\n\n        expected_options = {\n            'project': dataflow_hook_mock.return_value.project_id,\n            'jobName': job_name,\n            'stagingLocation': 'gs://test/staging',\n            'region': 'us-central1',\n            'labels': {'foo': 'bar', 'airflow-version': TEST_VERSION},\n            'output': 'gs://test/output',\n        }\n\n        beam_hook_mock.return_value.start_java_pipeline.assert_called_once_with(\n            variables=expected_options,\n            jar=gcs_provide_file.return_value.__enter__.return_value.name,\n            job_class=JOB_CLASS,\n            process_line_callback=mock.ANY,\n        )\n        dataflow_hook_mock.return_value.wait_for_done.assert_called_once_with(\n            job_id=self.operator.dataflow_job_id,\n            job_name=job_name,\n            location='us-central1',\n            multiple_jobs=False,\n            project_id=dataflow_hook_mock.return_value.project_id,\n        )\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    def test_on_kill_dataflow_runner(self, dataflow_hook_mock, _, __):\n        self.operator.runner = \"DataflowRunner\"\n        dataflow_hook_mock.return_value.is_job_dataflow_running.return_value = False\n        dataflow_cancel_job = dataflow_hook_mock.return_value.cancel_job\n        self.operator.execute(None)\n        self.operator.dataflow_job_id = JOB_ID\n        self.operator.on_kill()\n        dataflow_cancel_job.assert_called_once_with(\n            job_id=JOB_ID, project_id=self.operator.dataflow_config.project_id\n        )\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_on_kill_direct_runner(self, _, dataflow_mock, __):\n        dataflow_cancel_job = dataflow_mock.return_value.cancel_job\n        self.operator.execute(None)\n        self.operator.on_kill()\n        dataflow_cancel_job.assert_not_called()\n",
+                "source_code_before": "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n#\nimport unittest\nfrom unittest import mock\n\nfrom airflow.providers.apache.beam.operators.beam import (\n    BeamRunJavaPipelineOperator,\n    BeamRunPythonPipelineOperator,\n)\nfrom airflow.providers.google.cloud.operators.dataflow import DataflowConfiguration\nfrom airflow.version import version\n\nTASK_ID = 'test-beam-operator'\nDEFAULT_RUNNER = \"DirectRunner\"\nJOB_NAME = 'test-dataflow-pipeline-name'\nJOB_ID = 'test-dataflow-pipeline-id'\nJAR_FILE = 'gs://my-bucket/example/test.jar'\nJOB_CLASS = 'com.test.NotMain'\nPY_FILE = 'gs://my-bucket/my-object.py'\nPY_INTERPRETER = 'python3'\nPY_OPTIONS = ['-m']\nDEFAULT_OPTIONS_PYTHON = DEFAULT_OPTIONS_JAVA = {\n    'project': 'test',\n    'stagingLocation': 'gs://test/staging',\n}\nADDITIONAL_OPTIONS = {'output': 'gs://test/output', 'labels': {'foo': 'bar'}}\nTEST_VERSION = f\"v{version.replace('.', '-').replace('+', '-')}\"\nEXPECTED_ADDITIONAL_OPTIONS = {\n    'output': 'gs://test/output',\n    'labels': {'foo': 'bar', 'airflow-version': TEST_VERSION},\n}\n\n\nclass TestBeamRunPythonPipelineOperator(unittest.TestCase):\n    def setUp(self):\n        self.operator = BeamRunPythonPipelineOperator(\n            task_id=TASK_ID,\n            py_file=PY_FILE,\n            py_options=PY_OPTIONS,\n            default_pipeline_options=DEFAULT_OPTIONS_PYTHON,\n            pipeline_options=ADDITIONAL_OPTIONS,\n        )\n\n    def test_init(self):\n        \"\"\"Test BeamRunPythonPipelineOperator instance is properly initialized.\"\"\"\n        self.assertEqual(self.operator.task_id, TASK_ID)\n        self.assertEqual(self.operator.py_file, PY_FILE)\n        self.assertEqual(self.operator.runner, DEFAULT_RUNNER)\n        self.assertEqual(self.operator.py_options, PY_OPTIONS)\n        self.assertEqual(self.operator.py_interpreter, PY_INTERPRETER)\n        self.assertEqual(self.operator.default_pipeline_options, DEFAULT_OPTIONS_PYTHON)\n        self.assertEqual(self.operator.pipeline_options, EXPECTED_ADDITIONAL_OPTIONS)\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_exec_direct_runner(self, gcs_hook, beam_hook_mock):\n        \"\"\"Test BeamHook is created and the right args are passed to\n        start_python_workflow.\n        \"\"\"\n        start_python_hook = beam_hook_mock.return_value.start_python_pipeline\n        gcs_provide_file = gcs_hook.return_value.provide_file\n        self.operator.execute(None)\n        beam_hook_mock.assert_called_once_with(runner=DEFAULT_RUNNER)\n        expected_options = {\n            'project': 'test',\n            'staging_location': 'gs://test/staging',\n            'output': 'gs://test/output',\n            'labels': {'foo': 'bar', 'airflow-version': TEST_VERSION},\n        }\n        gcs_provide_file.assert_called_once_with(object_url=PY_FILE)\n        start_python_hook.assert_called_once_with(\n            variables=expected_options,\n            py_file=gcs_provide_file.return_value.__enter__.return_value.name,\n            py_options=PY_OPTIONS,\n            py_interpreter=PY_INTERPRETER,\n            py_requirements=None,\n            py_system_site_packages=False,\n            process_line_callback=None,\n        )\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_exec_dataflow_runner(self, gcs_hook, dataflow_hook_mock, beam_hook_mock):\n        \"\"\"Test DataflowHook is created and the right args are passed to\n        start_python_dataflow.\n        \"\"\"\n        dataflow_config = DataflowConfiguration()\n        self.operator.runner = \"DataflowRunner\"\n        self.operator.dataflow_config = dataflow_config\n        gcs_provide_file = gcs_hook.return_value.provide_file\n        self.operator.execute(None)\n        job_name = dataflow_hook_mock.build_dataflow_job_name.return_value\n        dataflow_hook_mock.assert_called_once_with(\n            gcp_conn_id=dataflow_config.gcp_conn_id,\n            delegate_to=dataflow_config.delegate_to,\n            poll_sleep=dataflow_config.poll_sleep,\n            impersonation_chain=dataflow_config.impersonation_chain,\n            drain_pipeline=dataflow_config.drain_pipeline,\n            cancel_timeout=dataflow_config.cancel_timeout,\n            wait_until_finished=dataflow_config.wait_until_finished,\n        )\n        expected_options = {\n            'project': dataflow_hook_mock.return_value.project_id,\n            'job_name': job_name,\n            'staging_location': 'gs://test/staging',\n            'output': 'gs://test/output',\n            'labels': {'foo': 'bar', 'airflow-version': TEST_VERSION},\n            'region': 'us-central1',\n        }\n        gcs_provide_file.assert_called_once_with(object_url=PY_FILE)\n        beam_hook_mock.return_value.start_python_pipeline.assert_called_once_with(\n            variables=expected_options,\n            py_file=gcs_provide_file.return_value.__enter__.return_value.name,\n            py_options=PY_OPTIONS,\n            py_interpreter=PY_INTERPRETER,\n            py_requirements=None,\n            py_system_site_packages=False,\n            process_line_callback=mock.ANY,\n        )\n        dataflow_hook_mock.return_value.wait_for_done.assert_called_once_with(\n            job_id=self.operator.dataflow_job_id,\n            job_name=job_name,\n            location='us-central1',\n            multiple_jobs=False,\n        )\n        dataflow_hook_mock.return_value.provide_authorized_gcloud.assert_called_once_with()\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    def test_on_kill_dataflow_runner(self, dataflow_hook_mock, _, __):\n        self.operator.runner = \"DataflowRunner\"\n        dataflow_cancel_job = dataflow_hook_mock.return_value.cancel_job\n        self.operator.execute(None)\n        self.operator.dataflow_job_id = JOB_ID\n        self.operator.on_kill()\n        dataflow_cancel_job.assert_called_once_with(\n            job_id=JOB_ID, project_id=self.operator.dataflow_config.project_id\n        )\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_on_kill_direct_runner(self, _, dataflow_mock, __):\n        dataflow_cancel_job = dataflow_mock.return_value.cancel_job\n        self.operator.execute(None)\n        self.operator.on_kill()\n        dataflow_cancel_job.assert_not_called()\n\n\nclass TestBeamRunJavaPipelineOperator(unittest.TestCase):\n    def setUp(self):\n        self.operator = BeamRunJavaPipelineOperator(\n            task_id=TASK_ID,\n            jar=JAR_FILE,\n            job_class=JOB_CLASS,\n            default_pipeline_options=DEFAULT_OPTIONS_JAVA,\n            pipeline_options=ADDITIONAL_OPTIONS,\n        )\n\n    def test_init(self):\n        \"\"\"Test BeamRunJavaPipelineOperator instance is properly initialized.\"\"\"\n        self.assertEqual(self.operator.task_id, TASK_ID)\n        self.assertEqual(self.operator.runner, DEFAULT_RUNNER)\n        self.assertEqual(self.operator.default_pipeline_options, DEFAULT_OPTIONS_JAVA)\n        self.assertEqual(self.operator.job_class, JOB_CLASS)\n        self.assertEqual(self.operator.jar, JAR_FILE)\n        self.assertEqual(self.operator.pipeline_options, ADDITIONAL_OPTIONS)\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_exec_direct_runner(self, gcs_hook, beam_hook_mock):\n        \"\"\"Test BeamHook is created and the right args are passed to\n        start_java_workflow.\n        \"\"\"\n        start_java_hook = beam_hook_mock.return_value.start_java_pipeline\n        gcs_provide_file = gcs_hook.return_value.provide_file\n        self.operator.execute(None)\n\n        beam_hook_mock.assert_called_once_with(runner=DEFAULT_RUNNER)\n        gcs_provide_file.assert_called_once_with(object_url=JAR_FILE)\n        start_java_hook.assert_called_once_with(\n            variables={**DEFAULT_OPTIONS_JAVA, **ADDITIONAL_OPTIONS},\n            jar=gcs_provide_file.return_value.__enter__.return_value.name,\n            job_class=JOB_CLASS,\n            process_line_callback=None,\n        )\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_exec_dataflow_runner(self, gcs_hook, dataflow_hook_mock, beam_hook_mock):\n        \"\"\"Test DataflowHook is created and the right args are passed to\n        start_java_dataflow.\n        \"\"\"\n        dataflow_config = DataflowConfiguration()\n        self.operator.runner = \"DataflowRunner\"\n        self.operator.dataflow_config = dataflow_config\n        gcs_provide_file = gcs_hook.return_value.provide_file\n        dataflow_hook_mock.return_value.is_job_dataflow_running.return_value = False\n        self.operator.execute(None)\n        job_name = dataflow_hook_mock.build_dataflow_job_name.return_value\n        dataflow_hook_mock.assert_called_once_with(\n            gcp_conn_id=dataflow_config.gcp_conn_id,\n            delegate_to=dataflow_config.delegate_to,\n            poll_sleep=dataflow_config.poll_sleep,\n            impersonation_chain=dataflow_config.impersonation_chain,\n            drain_pipeline=dataflow_config.drain_pipeline,\n            cancel_timeout=dataflow_config.cancel_timeout,\n            wait_until_finished=dataflow_config.wait_until_finished,\n        )\n        gcs_provide_file.assert_called_once_with(object_url=JAR_FILE)\n\n        expected_options = {\n            'project': dataflow_hook_mock.return_value.project_id,\n            'jobName': job_name,\n            'stagingLocation': 'gs://test/staging',\n            'region': 'us-central1',\n            'labels': {'foo': 'bar', 'airflow-version': TEST_VERSION},\n            'output': 'gs://test/output',\n        }\n\n        beam_hook_mock.return_value.start_java_pipeline.assert_called_once_with(\n            variables=expected_options,\n            jar=gcs_provide_file.return_value.__enter__.return_value.name,\n            job_class=JOB_CLASS,\n            process_line_callback=mock.ANY,\n        )\n        dataflow_hook_mock.return_value.wait_for_done.assert_called_once_with(\n            job_id=self.operator.dataflow_job_id,\n            job_name=job_name,\n            location='us-central1',\n            multiple_jobs=dataflow_config.multiple_jobs,\n            project_id=dataflow_hook_mock.return_value.project_id,\n        )\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    def test_on_kill_dataflow_runner(self, dataflow_hook_mock, _, __):\n        self.operator.runner = \"DataflowRunner\"\n        dataflow_hook_mock.return_value.is_job_dataflow_running.return_value = False\n        dataflow_cancel_job = dataflow_hook_mock.return_value.cancel_job\n        self.operator.execute(None)\n        self.operator.dataflow_job_id = JOB_ID\n        self.operator.on_kill()\n        dataflow_cancel_job.assert_called_once_with(\n            job_id=JOB_ID, project_id=self.operator.dataflow_config.project_id\n        )\n\n    @mock.patch('airflow.providers.apache.beam.operators.beam.BeamHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.DataflowHook')\n    @mock.patch('airflow.providers.apache.beam.operators.beam.GCSHook')\n    def test_on_kill_direct_runner(self, _, dataflow_mock, __):\n        dataflow_cancel_job = dataflow_mock.return_value.cancel_job\n        self.operator.execute(None)\n        self.operator.on_kill()\n        dataflow_cancel_job.assert_not_called()\n",
+                "nloc": 224,
+                "complexity": 12,
+                "token_count": 1418,
+                "methods": [
+                    {
+                        "name": "setUp",
+                        "long_name": "setUp( self )",
+                        "start_line": 50,
+                        "end_line": 57,
+                        "complexity": 1,
+                        "nloc": 8,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_init",
+                        "long_name": "test_init( self )",
+                        "start_line": 59,
+                        "end_line": 67,
+                        "complexity": 1,
+                        "nloc": 8,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_exec_direct_runner",
+                        "long_name": "test_exec_direct_runner( self , gcs_hook , beam_hook_mock )",
+                        "start_line": 71,
+                        "end_line": 94,
+                        "complexity": 1,
+                        "nloc": 21,
+                        "params": [
+                            "self",
+                            "gcs_hook",
+                            "beam_hook_mock"
+                        ]
+                    },
+                    {
+                        "name": "test_exec_dataflow_runner",
+                        "long_name": "test_exec_dataflow_runner( self , gcs_hook , dataflow_hook_mock , beam_hook_mock )",
+                        "start_line": 99,
+                        "end_line": 142,
+                        "complexity": 1,
+                        "nloc": 41,
+                        "params": [
+                            "self",
+                            "gcs_hook",
+                            "dataflow_hook_mock",
+                            "beam_hook_mock"
+                        ]
+                    },
+                    {
+                        "name": "test_on_kill_dataflow_runner",
+                        "long_name": "test_on_kill_dataflow_runner( self , dataflow_hook_mock , _ , __ )",
+                        "start_line": 147,
+                        "end_line": 155,
+                        "complexity": 1,
+                        "nloc": 9,
+                        "params": [
+                            "self",
+                            "dataflow_hook_mock",
+                            "_",
+                            "__"
+                        ]
+                    },
+                    {
+                        "name": "test_on_kill_direct_runner",
+                        "long_name": "test_on_kill_direct_runner( self , _ , dataflow_mock , __ )",
+                        "start_line": 160,
+                        "end_line": 164,
+                        "complexity": 1,
+                        "nloc": 5,
+                        "params": [
+                            "self",
+                            "_",
+                            "dataflow_mock",
+                            "__"
+                        ]
+                    },
+                    {
+                        "name": "setUp",
+                        "long_name": "setUp( self )",
+                        "start_line": 168,
+                        "end_line": 175,
+                        "complexity": 1,
+                        "nloc": 8,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_init",
+                        "long_name": "test_init( self )",
+                        "start_line": 177,
+                        "end_line": 184,
+                        "complexity": 1,
+                        "nloc": 7,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_exec_direct_runner",
+                        "long_name": "test_exec_direct_runner( self , gcs_hook , beam_hook_mock )",
+                        "start_line": 188,
+                        "end_line": 203,
+                        "complexity": 1,
+                        "nloc": 12,
+                        "params": [
+                            "self",
+                            "gcs_hook",
+                            "beam_hook_mock"
+                        ]
+                    },
+                    {
+                        "name": "test_exec_dataflow_runner",
+                        "long_name": "test_exec_dataflow_runner( self , gcs_hook , dataflow_hook_mock , beam_hook_mock )",
+                        "start_line": 208,
+                        "end_line": 251,
+                        "complexity": 1,
+                        "nloc": 39,
+                        "params": [
+                            "self",
+                            "gcs_hook",
+                            "dataflow_hook_mock",
+                            "beam_hook_mock"
+                        ]
+                    },
+                    {
+                        "name": "test_on_kill_dataflow_runner",
+                        "long_name": "test_on_kill_dataflow_runner( self , dataflow_hook_mock , _ , __ )",
+                        "start_line": 256,
+                        "end_line": 265,
+                        "complexity": 1,
+                        "nloc": 10,
+                        "params": [
+                            "self",
+                            "dataflow_hook_mock",
+                            "_",
+                            "__"
+                        ]
+                    },
+                    {
+                        "name": "test_on_kill_direct_runner",
+                        "long_name": "test_on_kill_direct_runner( self , _ , dataflow_mock , __ )",
+                        "start_line": 270,
+                        "end_line": 274,
+                        "complexity": 1,
+                        "nloc": 5,
+                        "params": [
+                            "self",
+                            "_",
+                            "dataflow_mock",
+                            "__"
+                        ]
+                    }
+                ],
+                "changed_methods": [
+                    {
+                        "name": "test_exec_dataflow_runner",
+                        "long_name": "test_exec_dataflow_runner( self , gcs_hook , dataflow_hook_mock , beam_hook_mock )",
+                        "start_line": 208,
+                        "end_line": 251
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "msg": "Fix flaky dask executor test (#20620)\n\nThe dask_executor test was failing occasionally on busy systems\r\nand seems that it was caused by being throttled by other tests.\r\n\r\nThe 30 seconds timeout in the test seems to be too short. Changed\r\nit to 120 seconds by default (it's just a timeout so it does\r\nnot really impact speed of execution of the tests but it gives\r\nthe test extra time to complete in case it is throttled.\r\n\r\nTimeout was added to assert method so that we can control it\r\nindividually in different tests.",
+        "author": {
+            "name": "Jarek Potiuk",
+            "email": "jarek@potiuk.com"
+        },
+        "co_authors": [],
+        "committer": {
+            "name": "GitHub",
+            "email": "noreply@github.com"
+        },
+        "author_date": "2022-01-01T22:47:13+01:00",
+        "deletions": 4,
+        "insertions": 5,
+        "lines": 9,
+        "files": 2,
+        "hash": "5eccb536e61df50bd39a6b9135cbe23d96ff6f75",
+        "modified_files": [
+            {
+                "filename": ".gitignore",
+                "old_path": null,
+                "new_path": "tests/executors/.gitignore",
+                "change_type": "ModificationType.ADD",
+                "diff": "@@ -0,0 +1 @@\n+/dask-worker-space/*.lock\n",
+                "diff_parsed": {
+                    "added": [
+                        [
+                            1,
+                            "/dask-worker-space/*.lock"
+                        ]
+                    ],
+                    "deleted": []
+                },
+                "added_lines": 1,
+                "deleted_lines": 0,
+                "source_code": "/dask-worker-space/*.lock\n",
+                "source_code_before": null,
+                "nloc": null,
+                "complexity": null,
+                "token_count": null,
+                "methods": [],
+                "changed_methods": []
+            },
+            {
+                "filename": "test_dask_executor.py",
+                "old_path": "tests/executors/test_dask_executor.py",
+                "new_path": "tests/executors/test_dask_executor.py",
+                "change_type": "ModificationType.MODIFY",
+                "diff": "@@ -46,7 +46,7 @@ FAIL_COMMAND = ['airflow', 'tasks', 'run', 'false']\n \n \n class TestBaseDask(unittest.TestCase):\n-    def assert_tasks_on_executor(self, executor):\n+    def assert_tasks_on_executor(self, executor, timeout_executor=120):\n \n         # start the executor\n         executor.start()\n@@ -58,7 +58,7 @@ class TestBaseDask(unittest.TestCase):\n         fail_future = next(k for k, v in executor.futures.items() if v == 'fail')\n \n         # wait for the futures to execute, with a timeout\n-        timeout = timezone.utcnow() + timedelta(seconds=30)\n+        timeout = timezone.utcnow() + timedelta(seconds=timeout_executor)\n         while not (success_future.done() and fail_future.done()):\n             if timezone.utcnow() > timeout:\n                 raise ValueError(\n@@ -82,7 +82,7 @@ class TestDaskExecutor(TestBaseDask):\n \n     def test_dask_executor_functions(self):\n         executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n-        self.assert_tasks_on_executor(executor)\n+        self.assert_tasks_on_executor(executor, timeout_executor=120)\n \n     def test_backfill_integration(self):\n         \"\"\"\n@@ -127,7 +127,7 @@ class TestDaskExecutorTLS(TestBaseDask):\n \n             executor = DaskExecutor(cluster_address=cluster['address'])\n \n-            self.assert_tasks_on_executor(executor)\n+            self.assert_tasks_on_executor(executor, timeout_executor=120)\n \n             executor.end()\n             # close the executor, the cluster context manager expects all listeners\n",
+                "diff_parsed": {
+                    "added": [
+                        [
+                            49,
+                            "    def assert_tasks_on_executor(self, executor, timeout_executor=120):"
+                        ],
+                        [
+                            61,
+                            "        timeout = timezone.utcnow() + timedelta(seconds=timeout_executor)"
+                        ],
+                        [
+                            85,
+                            "        self.assert_tasks_on_executor(executor, timeout_executor=120)"
+                        ],
+                        [
+                            130,
+                            "            self.assert_tasks_on_executor(executor, timeout_executor=120)"
+                        ]
+                    ],
+                    "deleted": [
+                        [
+                            49,
+                            "    def assert_tasks_on_executor(self, executor):"
+                        ],
+                        [
+                            61,
+                            "        timeout = timezone.utcnow() + timedelta(seconds=30)"
+                        ],
+                        [
+                            85,
+                            "        self.assert_tasks_on_executor(executor)"
+                        ],
+                        [
+                            130,
+                            "            self.assert_tasks_on_executor(executor)"
+                        ]
+                    ]
+                },
+                "added_lines": 4,
+                "deleted_lines": 4,
+                "source_code": "#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\nimport unittest\nfrom datetime import timedelta\nfrom unittest import mock\n\nimport pytest\n\nfrom airflow.exceptions import AirflowException\nfrom airflow.jobs.backfill_job import BackfillJob\nfrom airflow.models import DagBag\nfrom airflow.utils import timezone\nfrom tests.test_utils.config import conf_vars\n\ntry:\n    from distributed import LocalCluster\n\n    # utility functions imported from the dask testing suite to instantiate a test\n    # cluster for tls tests\n    from distributed.utils_test import cluster as dask_testing_cluster, get_cert, tls_security\n\n    from airflow.executors.dask_executor import DaskExecutor\n\n    skip_tls_tests = False\nexcept ImportError:\n    skip_tls_tests = True\n\nDEFAULT_DATE = timezone.datetime(2017, 1, 1)\nSUCCESS_COMMAND = ['airflow', 'tasks', 'run', '--help']\nFAIL_COMMAND = ['airflow', 'tasks', 'run', 'false']\n\n\nclass TestBaseDask(unittest.TestCase):\n    def assert_tasks_on_executor(self, executor, timeout_executor=120):\n\n        # start the executor\n        executor.start()\n\n        executor.execute_async(key='success', command=SUCCESS_COMMAND)\n        executor.execute_async(key='fail', command=FAIL_COMMAND)\n\n        success_future = next(k for k, v in executor.futures.items() if v == 'success')\n        fail_future = next(k for k, v in executor.futures.items() if v == 'fail')\n\n        # wait for the futures to execute, with a timeout\n        timeout = timezone.utcnow() + timedelta(seconds=timeout_executor)\n        while not (success_future.done() and fail_future.done()):\n            if timezone.utcnow() > timeout:\n                raise ValueError(\n                    'The futures should have finished; there is probably '\n                    'an error communicating with the Dask cluster.'\n                )\n\n        # both tasks should have finished\n        assert success_future.done()\n        assert fail_future.done()\n\n        # check task exceptions\n        assert success_future.exception() is None\n        assert fail_future.exception() is not None\n\n\nclass TestDaskExecutor(TestBaseDask):\n    def setUp(self):\n        self.dagbag = DagBag(include_examples=True)\n        self.cluster = LocalCluster()\n\n    def test_dask_executor_functions(self):\n        executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n        self.assert_tasks_on_executor(executor, timeout_executor=120)\n\n    def test_backfill_integration(self):\n        \"\"\"\n        Test that DaskExecutor can be used to backfill example dags\n        \"\"\"\n        dag = self.dagbag.get_dag('example_bash_operator')\n\n        job = BackfillJob(\n            dag=dag,\n            start_date=DEFAULT_DATE,\n            end_date=DEFAULT_DATE,\n            ignore_first_depends_on_past=True,\n            executor=DaskExecutor(cluster_address=self.cluster.scheduler_address),\n        )\n        job.run()\n\n    def tearDown(self):\n        self.cluster.close(timeout=5)\n\n\n@pytest.mark.skipif(\n    skip_tls_tests, reason=\"The tests are skipped because distributed framework could not be imported\"\n)\nclass TestDaskExecutorTLS(TestBaseDask):\n    def setUp(self):\n        self.dagbag = DagBag(include_examples=True)\n\n    @conf_vars(\n        {\n            ('dask', 'tls_ca'): get_cert('tls-ca-cert.pem'),\n            ('dask', 'tls_cert'): get_cert('tls-key-cert.pem'),\n            ('dask', 'tls_key'): get_cert('tls-key.pem'),\n        }\n    )\n    def test_tls(self):\n        # These use test certs that ship with dask/distributed and should not be\n        #  used in production\n        with dask_testing_cluster(\n            worker_kwargs={'security': tls_security(), \"protocol\": \"tls\"},\n            scheduler_kwargs={'security': tls_security(), \"protocol\": \"tls\"},\n        ) as (cluster, _):\n\n            executor = DaskExecutor(cluster_address=cluster['address'])\n\n            self.assert_tasks_on_executor(executor, timeout_executor=120)\n\n            executor.end()\n            # close the executor, the cluster context manager expects all listeners\n            # and tasks to have completed.\n            executor.client.close()\n\n    @mock.patch('airflow.executors.dask_executor.DaskExecutor.sync')\n    @mock.patch('airflow.executors.base_executor.BaseExecutor.trigger_tasks')\n    @mock.patch('airflow.executors.base_executor.Stats.gauge')\n    def test_gauge_executor_metrics(self, mock_stats_gauge, mock_trigger_tasks, mock_sync):\n        executor = DaskExecutor()\n        executor.heartbeat()\n        calls = [\n            mock.call('executor.open_slots', mock.ANY),\n            mock.call('executor.queued_tasks', mock.ANY),\n            mock.call('executor.running_tasks', mock.ANY),\n        ]\n        mock_stats_gauge.assert_has_calls(calls)\n\n\nclass TestDaskExecutorQueue(unittest.TestCase):\n    def test_dask_queues_no_resources(self):\n        self.cluster = LocalCluster()\n        executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n        executor.start()\n\n        with self.assertRaises(AirflowException):\n            executor.execute_async(key='success', command=SUCCESS_COMMAND, queue='queue1')\n\n    def test_dask_queues_not_available(self):\n        self.cluster = LocalCluster(resources={'queue1': 1})\n        executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n        executor.start()\n\n        with self.assertRaises(AirflowException):\n            # resource 'queue2' doesn't exist on cluster\n            executor.execute_async(key='success', command=SUCCESS_COMMAND, queue='queue2')\n\n    def test_dask_queues(self):\n        self.cluster = LocalCluster(resources={'queue1': 1})\n        executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n        executor.start()\n\n        executor.execute_async(key='success', command=SUCCESS_COMMAND, queue='queue1')\n        success_future = next(k for k, v in executor.futures.items() if v == 'success')\n\n        # wait for the futures to execute, with a timeout\n        timeout = timezone.utcnow() + timedelta(seconds=30)\n        while not success_future.done():\n            if timezone.utcnow() > timeout:\n                raise ValueError(\n                    'The futures should have finished; there is probably '\n                    'an error communicating with the Dask cluster.'\n                )\n\n        assert success_future.done()\n        assert success_future.exception() is None\n\n    def test_dask_queues_no_queue_specified(self):\n        self.cluster = LocalCluster(resources={'queue1': 1})\n        executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n        executor.start()\n\n        # no queue specified for executing task\n        executor.execute_async(key='success', command=SUCCESS_COMMAND)\n        success_future = next(k for k, v in executor.futures.items() if v == 'success')\n\n        # wait for the futures to execute, with a timeout\n        timeout = timezone.utcnow() + timedelta(seconds=30)\n        while not success_future.done():\n            if timezone.utcnow() > timeout:\n                raise ValueError(\n                    'The futures should have finished; there is probably '\n                    'an error communicating with the Dask cluster.'\n                )\n\n        assert success_future.done()\n        assert success_future.exception() is None\n\n    def tearDown(self):\n        self.cluster.close(timeout=5)\n",
+                "source_code_before": "#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\nimport unittest\nfrom datetime import timedelta\nfrom unittest import mock\n\nimport pytest\n\nfrom airflow.exceptions import AirflowException\nfrom airflow.jobs.backfill_job import BackfillJob\nfrom airflow.models import DagBag\nfrom airflow.utils import timezone\nfrom tests.test_utils.config import conf_vars\n\ntry:\n    from distributed import LocalCluster\n\n    # utility functions imported from the dask testing suite to instantiate a test\n    # cluster for tls tests\n    from distributed.utils_test import cluster as dask_testing_cluster, get_cert, tls_security\n\n    from airflow.executors.dask_executor import DaskExecutor\n\n    skip_tls_tests = False\nexcept ImportError:\n    skip_tls_tests = True\n\nDEFAULT_DATE = timezone.datetime(2017, 1, 1)\nSUCCESS_COMMAND = ['airflow', 'tasks', 'run', '--help']\nFAIL_COMMAND = ['airflow', 'tasks', 'run', 'false']\n\n\nclass TestBaseDask(unittest.TestCase):\n    def assert_tasks_on_executor(self, executor):\n\n        # start the executor\n        executor.start()\n\n        executor.execute_async(key='success', command=SUCCESS_COMMAND)\n        executor.execute_async(key='fail', command=FAIL_COMMAND)\n\n        success_future = next(k for k, v in executor.futures.items() if v == 'success')\n        fail_future = next(k for k, v in executor.futures.items() if v == 'fail')\n\n        # wait for the futures to execute, with a timeout\n        timeout = timezone.utcnow() + timedelta(seconds=30)\n        while not (success_future.done() and fail_future.done()):\n            if timezone.utcnow() > timeout:\n                raise ValueError(\n                    'The futures should have finished; there is probably '\n                    'an error communicating with the Dask cluster.'\n                )\n\n        # both tasks should have finished\n        assert success_future.done()\n        assert fail_future.done()\n\n        # check task exceptions\n        assert success_future.exception() is None\n        assert fail_future.exception() is not None\n\n\nclass TestDaskExecutor(TestBaseDask):\n    def setUp(self):\n        self.dagbag = DagBag(include_examples=True)\n        self.cluster = LocalCluster()\n\n    def test_dask_executor_functions(self):\n        executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n        self.assert_tasks_on_executor(executor)\n\n    def test_backfill_integration(self):\n        \"\"\"\n        Test that DaskExecutor can be used to backfill example dags\n        \"\"\"\n        dag = self.dagbag.get_dag('example_bash_operator')\n\n        job = BackfillJob(\n            dag=dag,\n            start_date=DEFAULT_DATE,\n            end_date=DEFAULT_DATE,\n            ignore_first_depends_on_past=True,\n            executor=DaskExecutor(cluster_address=self.cluster.scheduler_address),\n        )\n        job.run()\n\n    def tearDown(self):\n        self.cluster.close(timeout=5)\n\n\n@pytest.mark.skipif(\n    skip_tls_tests, reason=\"The tests are skipped because distributed framework could not be imported\"\n)\nclass TestDaskExecutorTLS(TestBaseDask):\n    def setUp(self):\n        self.dagbag = DagBag(include_examples=True)\n\n    @conf_vars(\n        {\n            ('dask', 'tls_ca'): get_cert('tls-ca-cert.pem'),\n            ('dask', 'tls_cert'): get_cert('tls-key-cert.pem'),\n            ('dask', 'tls_key'): get_cert('tls-key.pem'),\n        }\n    )\n    def test_tls(self):\n        # These use test certs that ship with dask/distributed and should not be\n        #  used in production\n        with dask_testing_cluster(\n            worker_kwargs={'security': tls_security(), \"protocol\": \"tls\"},\n            scheduler_kwargs={'security': tls_security(), \"protocol\": \"tls\"},\n        ) as (cluster, _):\n\n            executor = DaskExecutor(cluster_address=cluster['address'])\n\n            self.assert_tasks_on_executor(executor)\n\n            executor.end()\n            # close the executor, the cluster context manager expects all listeners\n            # and tasks to have completed.\n            executor.client.close()\n\n    @mock.patch('airflow.executors.dask_executor.DaskExecutor.sync')\n    @mock.patch('airflow.executors.base_executor.BaseExecutor.trigger_tasks')\n    @mock.patch('airflow.executors.base_executor.Stats.gauge')\n    def test_gauge_executor_metrics(self, mock_stats_gauge, mock_trigger_tasks, mock_sync):\n        executor = DaskExecutor()\n        executor.heartbeat()\n        calls = [\n            mock.call('executor.open_slots', mock.ANY),\n            mock.call('executor.queued_tasks', mock.ANY),\n            mock.call('executor.running_tasks', mock.ANY),\n        ]\n        mock_stats_gauge.assert_has_calls(calls)\n\n\nclass TestDaskExecutorQueue(unittest.TestCase):\n    def test_dask_queues_no_resources(self):\n        self.cluster = LocalCluster()\n        executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n        executor.start()\n\n        with self.assertRaises(AirflowException):\n            executor.execute_async(key='success', command=SUCCESS_COMMAND, queue='queue1')\n\n    def test_dask_queues_not_available(self):\n        self.cluster = LocalCluster(resources={'queue1': 1})\n        executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n        executor.start()\n\n        with self.assertRaises(AirflowException):\n            # resource 'queue2' doesn't exist on cluster\n            executor.execute_async(key='success', command=SUCCESS_COMMAND, queue='queue2')\n\n    def test_dask_queues(self):\n        self.cluster = LocalCluster(resources={'queue1': 1})\n        executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n        executor.start()\n\n        executor.execute_async(key='success', command=SUCCESS_COMMAND, queue='queue1')\n        success_future = next(k for k, v in executor.futures.items() if v == 'success')\n\n        # wait for the futures to execute, with a timeout\n        timeout = timezone.utcnow() + timedelta(seconds=30)\n        while not success_future.done():\n            if timezone.utcnow() > timeout:\n                raise ValueError(\n                    'The futures should have finished; there is probably '\n                    'an error communicating with the Dask cluster.'\n                )\n\n        assert success_future.done()\n        assert success_future.exception() is None\n\n    def test_dask_queues_no_queue_specified(self):\n        self.cluster = LocalCluster(resources={'queue1': 1})\n        executor = DaskExecutor(cluster_address=self.cluster.scheduler_address)\n        executor.start()\n\n        # no queue specified for executing task\n        executor.execute_async(key='success', command=SUCCESS_COMMAND)\n        success_future = next(k for k, v in executor.futures.items() if v == 'success')\n\n        # wait for the futures to execute, with a timeout\n        timeout = timezone.utcnow() + timedelta(seconds=30)\n        while not success_future.done():\n            if timezone.utcnow() > timeout:\n                raise ValueError(\n                    'The futures should have finished; there is probably '\n                    'an error communicating with the Dask cluster.'\n                )\n\n        assert success_future.done()\n        assert success_future.exception() is None\n\n    def tearDown(self):\n        self.cluster.close(timeout=5)\n",
+                "nloc": 135,
+                "complexity": 28,
+                "token_count": 1036,
+                "methods": [
+                    {
+                        "name": "assert_tasks_on_executor",
+                        "long_name": "assert_tasks_on_executor( self , executor , timeout_executor = 120 )",
+                        "start_line": 49,
+                        "end_line": 75,
+                        "complexity": 8,
+                        "nloc": 17,
+                        "params": [
+                            "self",
+                            "executor",
+                            "timeout_executor"
+                        ]
+                    },
+                    {
+                        "name": "setUp",
+                        "long_name": "setUp( self )",
+                        "start_line": 79,
+                        "end_line": 81,
+                        "complexity": 1,
+                        "nloc": 3,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_dask_executor_functions",
+                        "long_name": "test_dask_executor_functions( self )",
+                        "start_line": 83,
+                        "end_line": 85,
+                        "complexity": 1,
+                        "nloc": 3,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_backfill_integration",
+                        "long_name": "test_backfill_integration( self )",
+                        "start_line": 87,
+                        "end_line": 100,
+                        "complexity": 1,
+                        "nloc": 10,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "tearDown",
+                        "long_name": "tearDown( self )",
+                        "start_line": 102,
+                        "end_line": 103,
+                        "complexity": 1,
+                        "nloc": 2,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "setUp",
+                        "long_name": "setUp( self )",
+                        "start_line": 110,
+                        "end_line": 111,
+                        "complexity": 1,
+                        "nloc": 2,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_tls",
+                        "long_name": "test_tls( self )",
+                        "start_line": 120,
+                        "end_line": 135,
+                        "complexity": 1,
+                        "nloc": 9,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_gauge_executor_metrics",
+                        "long_name": "test_gauge_executor_metrics( self , mock_stats_gauge , mock_trigger_tasks , mock_sync )",
+                        "start_line": 140,
+                        "end_line": 148,
+                        "complexity": 1,
+                        "nloc": 9,
+                        "params": [
+                            "self",
+                            "mock_stats_gauge",
+                            "mock_trigger_tasks",
+                            "mock_sync"
+                        ]
+                    },
+                    {
+                        "name": "test_dask_queues_no_resources",
+                        "long_name": "test_dask_queues_no_resources( self )",
+                        "start_line": 152,
+                        "end_line": 158,
+                        "complexity": 1,
+                        "nloc": 6,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_dask_queues_not_available",
+                        "long_name": "test_dask_queues_not_available( self )",
+                        "start_line": 160,
+                        "end_line": 167,
+                        "complexity": 1,
+                        "nloc": 6,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_dask_queues",
+                        "long_name": "test_dask_queues( self )",
+                        "start_line": 169,
+                        "end_line": 187,
+                        "complexity": 5,
+                        "nloc": 15,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "test_dask_queues_no_queue_specified",
+                        "long_name": "test_dask_queues_no_queue_specified( self )",
+                        "start_line": 189,
+                        "end_line": 208,
+                        "complexity": 5,
+                        "nloc": 15,
+                        "params": [
+                            "self"
+                        ]
+                    },
+                    {
+                        "name": "tearDown",
+                        "long_name": "tearDown( self )",
+                        "start_line": 210,
+                        "end_line": 211,
+                        "complexity": 1,
+                        "nloc": 2,
+                        "params": [
+                            "self"
+                        ]
+                    }
+                ],
+                "changed_methods": [
+                    {
+                        "name": "test_tls",
+                        "long_name": "test_tls( self )",
+                        "start_line": 120,
+                        "end_line": 135
+                    },
+                    {
+                        "name": "test_dask_executor_functions",
+                        "long_name": "test_dask_executor_functions( self )",
+                        "start_line": 83,
+                        "end_line": 85
+                    },
+                    {
+                        "name": "assert_tasks_on_executor",
+                        "long_name": "assert_tasks_on_executor( self , executor , timeout_executor = 120 )",
+                        "start_line": 49,
+                        "end_line": 75
+                    },
+                    {
+                        "name": "assert_tasks_on_executor",
+                        "long_name": "assert_tasks_on_executor( self , executor )",
+                        "start_line": 49,
+                        "end_line": 75
+                    }
+                ]
+            }
+        ]
+    }
+]
