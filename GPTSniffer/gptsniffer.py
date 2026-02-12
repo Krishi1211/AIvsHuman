@@ -32,8 +32,11 @@ from sklearn.metrics import accuracy_score
 #from google.colab import drive
 #drive.mount('/content/drive/',force_remount=False)
 #DATA_PATH = '/content/drive/My Drive/Colab Notebooks/SourceSniffer/'
-DATA_PATH = './CONF'
+#DATA_PATH = './CONF'
 from os.path import join
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(BASE_DIR, "..", "DATASETS", "RQ1", "C1", "CONF")
+
 
 # Set the directory where the training and testing data is stored
 train_data_path = join(DATA_PATH,'training_data')
@@ -46,7 +49,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Define the tokenizer and the model
 tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base")
-model = AutoModelForSequenceClassification.from_pretrained("microsoft/codebert-base")
+model = AutoModelForSequenceClassification.from_pretrained("microsoft/codebert-base") 
 
 
 
@@ -55,20 +58,41 @@ class CodeDataset(Dataset):
     def __init__(self, directory):
         self.samples = []
         for filename in os.listdir(directory):
+            full = os.path.join(directory, filename)
+            if not os.path.isfile(full):
+                continue
+
             label = int(filename.split('_')[0])
-            with open(os.path.join(directory, filename), 'r') as f:
+
+            with open(full, 'r', encoding='utf-8', errors='ignore') as f:
                 code = f.read()
-                self.samples.append((code, label))
-    
+
+            self.samples.append((code, label))
+
     def __len__(self):
         return len(self.samples)
 
     def __getitem__(self, index):
         code, label = self.samples[index]
-        inputs = tokenizer.encode_plus(code, padding='max_length', max_length=512, truncation=True)
-        input_ids = inputs['input_ids']
-        attention_mask = inputs['attention_mask']
-        return {'input_ids': torch.tensor(input_ids, dtype=torch.long), 'attention_mask': torch.tensor(attention_mask, dtype=torch.long), 'labels': torch.tensor(label, dtype=torch.long)}
+
+        inputs = tokenizer(
+            code,
+            padding="max_length",
+            max_length=512,
+            truncation=True,
+            return_tensors=None
+        )
+
+        input_ids = inputs["input_ids"]
+        attention_mask = inputs["attention_mask"]
+
+        return {
+            "input_ids": torch.tensor(input_ids, dtype=torch.long),
+            "attention_mask": torch.tensor(attention_mask, dtype=torch.long),
+            "labels": torch.tensor(label, dtype=torch.long),
+        }
+
+
 
 
 def get_code_without_comments(filepath):
@@ -93,7 +117,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 # Define the training arguments and the trainer
 training_args = TrainingArguments(
     output_dir='./results',
-    num_train_epochs=12,
+    num_train_epochs=1,
     per_device_train_batch_size=32,
     per_device_eval_batch_size=32,
     warmup_steps=500,
@@ -120,7 +144,13 @@ trainer = Trainer(
 
 
 # Train the model with the pre-defined parameters
-trainer.train()
+#trainer.train()
+
+trainer.save_model("./saved_model")
+tokenizer.save_pretrained("./saved_model")
+
+print("Model + tokenizer saved to ./saved_model", flush=True)
+
 
 
 # Test the model and print out the confusion matrix
