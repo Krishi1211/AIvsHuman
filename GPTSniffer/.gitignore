@@ -1,0 +1,10 @@
+DATASETS/
+GPTSniffer/DATASETS/
+results/
+saved_model/
+checkpoint-*/
+*.pt
+*.bin
+*.safetensors
+venv/
+__pycache__/
