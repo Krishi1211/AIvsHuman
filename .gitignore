@@ -13,3 +13,10 @@ data/calibration_results/detector/*.joblib
 data/calibration_results/detector/*.bin
 data/calibration_results/detector/*.pt
 repos/
+GPTSnifferInferenceApproach/data/aidev/
+GPTSnifferInferenceApproach/data/analysis/**/*.parquet
+GPTSnifferInferenceApproach/data/calibration/**/*.parquet
+GPTSnifferInferenceApproach/data/calibration_results/detector/*.joblib
+GPTSnifferInferenceApproach/data/calibration_results/detector/*.bin
+GPTSnifferInferenceApproach/data/calibration_results/detector/*.pt
+GPTSnifferInferenceApproach/repos/
