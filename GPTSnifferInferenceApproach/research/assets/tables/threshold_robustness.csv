@@ -1,0 +1,10 @@
+repo,threshold_label,mean_commit_ai_fraction
+airflow,high,0.3875
+airflow,low,0.4108333333333334
+airflow,medium,0.4
+django,high,0.409375
+django,low,0.46305555555555555
+django,medium,0.43475694444444446
+elasticsearch,high,0.4408333333333333
+elasticsearch,low,0.46
+elasticsearch,medium,0.45416666666666666
