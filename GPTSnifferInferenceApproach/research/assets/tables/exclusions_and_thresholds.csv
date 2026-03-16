@@ -1,5 +1,0 @@
-type,value
-excluded_file_categories,"docs,config,lockfile"
-excluded_length_buckets,very_short
-threshold,0.44999999999999996
-allowed_combinations,10

@@ -1,8 +1,0 @@
-{
-  "repo": "airflow",
-  "commit_rows": 23556,
-  "hunk_rows": 518811,
-  "since": "2021-01-01T00:00:00",
-  "to": "2025-12-31T23:59:59",
-  "output_dir": "/Users/uchandar/Documents/Dev-Workspace/gitDiffStory/data/oss/airflow"
-}

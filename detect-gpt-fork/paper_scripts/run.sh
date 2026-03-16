@@ -1,1 +1,0 @@
-python run.py --dataset "commits" --cache_dir "/media/haleh/HDD-Linux/repositories/ECS260/AIvsHuman/"

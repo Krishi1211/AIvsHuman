@@ -1,8 +1,0 @@
-{
-  "repo": "elasticsearch",
-  "commit_rows": 34897,
-  "hunk_rows": 974953,
-  "since": "2021-01-01T00:00:00",
-  "to": "2025-12-31T23:59:59",
-  "output_dir": "/Users/uchandar/Documents/Dev-Workspace/gitDiffStory/data/oss/elasticsearch"
-}

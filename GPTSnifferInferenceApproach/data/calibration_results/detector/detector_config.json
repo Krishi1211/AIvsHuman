@@ -1,5 +1,0 @@
-{
-  "model_name": "microsoft/codebert-base",
-  "max_length": 192,
-  "batch_size": 32
-}
