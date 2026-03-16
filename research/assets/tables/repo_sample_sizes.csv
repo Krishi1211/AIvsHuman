@@ -1,0 +1,4 @@
+repo,commit_rows,hunk_rows,since,to,output_dir
+airflow,23556,518811,2021-01-01T00:00:00,2025-12-31T23:59:59,/Users/uchandar/Documents/Dev-Workspace/gitDiffStory/data/oss/airflow
+django,5014,108454,2021-01-01T00:00:00,2025-12-31T23:59:59,/Users/uchandar/Documents/Dev-Workspace/gitDiffStory/data/oss/django
+elasticsearch,34897,974953,2021-01-01T00:00:00,2025-12-31T23:59:59,/Users/uchandar/Documents/Dev-Workspace/gitDiffStory/data/oss/elasticsearch

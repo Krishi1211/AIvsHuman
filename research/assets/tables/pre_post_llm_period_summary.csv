@@ -1,0 +1,3 @@
+period,years,commits,ai_like_commits,weighted_commit_ai_fraction,weighted_mean_ai_line_fraction
+2021-2022 pre-mainstream LLM,"2021,2022",4319,1781,0.412363973141931,0.38595757249154083
+2023-2025 post-mainstream LLM,"2023,2024,2025",6474,2736,0.422613531047266,0.3961558758959286

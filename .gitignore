@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+.venv-*/
+.cache/
+
+# Large raw inputs and local clones used during reproduction.
+data/aidev/
+data/analysis/**/*.parquet
+data/calibration/**/*.parquet
+data/calibration_results/detector/*.joblib
+data/calibration_results/detector/*.bin
+data/calibration_results/detector/*.pt
+repos/
