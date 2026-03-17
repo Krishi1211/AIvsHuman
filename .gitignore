@@ -25,6 +25,7 @@ GPTSnifferInferenceApproach/repos/
 Pydriller/*.csv
 Pydriller/*.json
 Pydriller/*.xlsx
+*.parquet
 *.csv
 *.json
 *.xlsx
