@@ -1,7 +1,8 @@
 import json
 import glob
-import numpy as np
 import pandas as pd
+import numpy as np
+import random
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -15,52 +16,45 @@ def load_data():
     base_path = '/Users/krishi1211/Documents/SE/AIvsHuman/detect-gpt-fork/results'
     files = glob.glob(f'{base_path}/*/*/raw_data.json', recursive=True)
     
-    texts = []
-    labels = []
+    ai_texts = []
     
+    # Load AI
     for fpath in files:
         with open(fpath, 'r', encoding='utf-8') as f:
             try:
                 data = json.load(f)
-                if 'original' in data:
-                    for text in data['original']:
-                        texts.append(text)
-                        labels.append(0)  # Human
-                        
                 if 'sampled' in data:
                     for text in data['sampled']:
-                        texts.append(text)
-                        labels.append(1)  # AI
+                        ai_texts.append(text)
             except Exception as e:
                 pass
                 
+    # Load Humans from Pydriller
+    df_human = pd.read_parquet('/Users/krishi1211/Documents/SE/AIvsHuman/Pydriller/commit_metrics.parquet')
+    human_texts = df_human['message'].dropna().astype(str).tolist()
+    
+    ai_count = len(ai_texts)
+    random.seed(42)
+    human_texts = random.sample(human_texts, ai_count)
+    
+    texts = human_texts + ai_texts
+    labels = [0]*len(human_texts) + [1]*len(ai_texts)
+    
     return texts, labels
 
 def evaluate_model(name, pipeline, X_train, X_test, y_train, y_test):
     pipeline.fit(X_train, y_train)
     preds = pipeline.predict(X_test)
-    
-    # Predict probabilities for MSE and R2
     probs = pipeline.predict_proba(X_test)[:, 1]
-        
+    
     precision, recall, f1, _ = precision_recall_fscore_support(y_test, preds, average='binary', zero_division=0)
     acc = accuracy_score(y_test, preds)
     mse = mean_squared_error(y_test, probs)
     r2 = r2_score(y_test, probs)
-    
-    return {
-        "Model": name,
-        "Accuracy": acc,
-        "F1-Score": f1,
-        "Precision": precision,
-        "Recall": recall,
-        "MSE": mse,
-        "R2": r2
-    }
+    return {"Model": name, "Accuracy": acc, "F1-Score": f1, "Precision": precision, "Recall": recall, "MSE": mse, "R2": r2}
 
 def main():
     texts, labels = load_data()
-    print(f"Loaded {len(texts)} samples")
     X_train, X_test, y_train, y_test = train_test_split(texts, labels, test_size=0.2, random_state=42)
     
     models = {
@@ -72,32 +66,10 @@ def main():
     
     results = []
     for name, clf in models.items():
-        print(f"Training {name}...")
-        pipeline = Pipeline([
-            ('tfidf', TfidfVectorizer(max_features=5000, ngram_range=(1, 2))),
-            ('clf', clf)
-        ])
-        res = evaluate_model(name, pipeline, X_train, X_test, y_train, y_test)
-        results.append(res)
+        pipeline = Pipeline([('tfidf', TfidfVectorizer(max_features=5000, ngram_range=(1, 2))), ('clf', clf)])
+        results.append(evaluate_model(name, pipeline, X_train, X_test, y_train, y_test))
         
     df = pd.DataFrame(results)
-    
-    # Add HuggingFace metrics (previously computed)
-    hf_res = {
-        "Model": "DistilBERT (Transformers)",
-        "Accuracy": 0.8639,
-        "F1-Score": 0.8672,
-        "Precision": 0.8939,
-        "Recall": 0.8421,
-        "MSE": 0.1007,
-        "R2": 0.5958
-    }
-    
-    df = pd.concat([df, pd.DataFrame([hf_res])], ignore_index=True)
-    
-    print("\n" + "="*80)
-    print("FINAL MODEL COMPARISON METRICS")
-    print("="*80)
     print(df.to_markdown(index=False, floatfmt=".4f"))
 
 if __name__ == '__main__':

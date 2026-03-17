@@ -14,25 +14,25 @@ dfs = []
 
 # Load Airflow Old (2015-2016)
 try:
-    df1 = pd.read_csv('/Users/krishi1211/Documents/SE/airflow_commits_data_old.csv', usecols=usecols_airflow, on_bad_lines='skip')
+    df1 = pd.read_csv('/Users/krishi1211/Documents/SE/AIvsHuman/Pydriller/airflow_commits_data_old.csv', usecols=usecols_airflow, on_bad_lines='skip')
     dfs.append(df1)
 except Exception as e: print("Skipped old airflow data.")
 
 # Load Elastic 2016-2019
 try:
-    df2 = pd.read_csv('/Users/krishi1211/Documents/SE/elasticsearch_metrics_2016_2019.csv', usecols=usecols_elastic, on_bad_lines='skip').rename(columns={'files': 'files_count'})
+    df2 = pd.read_csv('/Users/krishi1211/Documents/SE/AIvsHuman/Pydriller/elasticsearch_metrics_2016_2019.csv', usecols=usecols_elastic, on_bad_lines='skip').rename(columns={'files': 'files_count'})
     dfs.append(df2)
 except Exception as e: print("Skipped elastic 19 data.")
 
 # Load Airflow modern (~2022)
 try:
-    df3 = pd.read_csv('/Users/krishi1211/Documents/SE/airflow_commits_data.csv', usecols=usecols_airflow, on_bad_lines='skip')
+    df3 = pd.read_csv('/Users/krishi1211/Documents/SE/AIvsHuman/Pydriller/airflow_commits_data.csv', usecols=usecols_airflow, on_bad_lines='skip')
     dfs.append(df3)
 except Exception as e: print("Skipped modern airflow data.")
 
 # Load Elastic 2022-2025
 try:
-    df4 = pd.read_csv('/Users/krishi1211/Documents/SE/elasticsearch_metrics_2022_2025.csv', usecols=usecols_elastic, on_bad_lines='skip').rename(columns={'files': 'files_count'})
+    df4 = pd.read_csv('/Users/krishi1211/Documents/SE/AIvsHuman/Pydriller/elasticsearch_metrics_2022_2025.csv', usecols=usecols_elastic, on_bad_lines='skip').rename(columns={'files': 'files_count'})
     dfs.append(df4)
 except Exception as e: print("Skipped elastic 25 data.")
 
@@ -98,7 +98,7 @@ axes[1, 1].set_xlabel('Time (Year)')
 axes[1, 1].set_ylabel('Files Changed per Commit')
 
 plt.tight_layout()
-output_path = '/Users/krishi1211/Documents/SE/AIvsHuman/research/assets/figures/transformers-commit metrics/repo_analysis_time_grid.png'
+output_path = '/Users/krishi1211/Documents/SE/AIvsHuman/transformer-commit message/images/repo_analysis_time_grid.png'
 plt.savefig(output_path, dpi=300, bbox_inches='tight')
 plt.close()
 

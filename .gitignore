@@ -28,3 +28,7 @@ Pydriller/*.xlsx
 *.csv
 *.json
 *.xlsx
+*.safetensors
+*.pt
+*.bin
+*.pth

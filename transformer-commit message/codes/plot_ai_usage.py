@@ -15,9 +15,9 @@ def load_data_samples(n_samples_per_year=200):
     print("Loading datasets...")
     # Map all files
     datasets = {
-        'elasticsearch_2016_2019': ('/Users/krishi1211/Documents/SE/elasticsearch_metrics_2016_2019.csv', 'message', 'author_date'),
-        'elasticsearch_2022_2025': ('/Users/krishi1211/Documents/SE/elasticsearch_metrics_2022_2025.csv', 'message', 'author_date'),
-        'airflow_old': ('/Users/krishi1211/Documents/SE/airflow_commits_data_old.csv', 'msg', 'author_date'),
+        'elasticsearch_2016_2019': ('/Users/krishi1211/Documents/SE/AIvsHuman/Pydriller/elasticsearch_metrics_2016_2019.csv', 'message', 'author_date'),
+        'elasticsearch_2022_2025': ('/Users/krishi1211/Documents/SE/AIvsHuman/Pydriller/elasticsearch_metrics_2022_2025.csv', 'message', 'author_date'),
+        'airflow_old': ('/Users/krishi1211/Documents/SE/AIvsHuman/Pydriller/airflow_commits_data_old.csv', 'msg', 'author_date'),
         # 'airflow': ('/Users/krishi1211/Documents/SE/airflow_commits_data.csv', 'msg', 'author_date') # Skip mapping this 1GB file entirely for memory safety
     }
 
@@ -62,7 +62,7 @@ def load_data_samples(n_samples_per_year=200):
     final_df = pd.concat(sampled_dfs, ignore_index=True)
     return final_df
 
-def predict_ai_usage(df, model_path="./saved_hf_detector"):
+def predict_ai_usage(df, model_path="/Users/krishi1211/Documents/SE/AIvsHuman/transformer-commit message/saved_hf_detector"):
     print("Loading HuggingFace detector...")
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSequenceClassification.from_pretrained(model_path)
@@ -159,7 +159,7 @@ def generate_usage_graphs(df):
     
     plt.tight_layout()
     # Save graph 
-    output_path = '/Users/krishi1211/Documents/SE/ai_usage_trend.png'
+    output_path = '/Users/krishi1211/Documents/SE/AIvsHuman/transformer-commit message/images/ai_usage_trend.png'
     plt.savefig(output_path, dpi=300)
     plt.close()
     
@@ -173,4 +173,4 @@ if __name__ == "__main__":
     
     print("\nYearly Data Summary:")
     print(stats_df.to_markdown(index=False, floatfmt=".2f"))
-    print(f"\nPlot saved to /Users/krishi1211/Documents/SE/ai_usage_trend.png")
+    print(f"\nPlot saved to /Users/krishi1211/Documents/SE/AIvsHuman/transformer-commit message/images/ai_usage_trend.png")

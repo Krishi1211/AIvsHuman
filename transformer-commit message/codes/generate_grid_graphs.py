@@ -8,7 +8,7 @@ warnings.filterwarnings('ignore')
 
 print("Loading dataset...")
 usecols = ['hash', 'author_date', 'insertions', 'deletions', 'files_count']
-df = pd.read_csv('/Users/krishi1211/Documents/SE/airflow_commits_data_old.csv', usecols=usecols, on_bad_lines='skip')
+df = pd.read_csv('/Users/krishi1211/Documents/SE/AIvsHuman/Pydriller/airflow_commits_data_old.csv', usecols=usecols, on_bad_lines='skip')
 
 print("Preprocessing...")
 df['author_date'] = pd.to_datetime(df['author_date'], errors='coerce', utc=True)
@@ -68,7 +68,7 @@ axes[1, 1].set_xlabel('files')
 axes[1, 1].set_ylabel('Count')
 
 plt.tight_layout()
-output_path = '/Users/krishi1211/Documents/SE/repo_analysis_grid.png'
+output_path = '/Users/krishi1211/Documents/SE/AIvsHuman/transformer-commit message/images/repo_analysis_grid.png'
 plt.savefig(output_path, dpi=300, bbox_inches='tight')
 plt.close()
 
