@@ -20,3 +20,11 @@ GPTSnifferInferenceApproach/data/calibration_results/detector/*.joblib
 GPTSnifferInferenceApproach/data/calibration_results/detector/*.bin
 GPTSnifferInferenceApproach/data/calibration_results/detector/*.pt
 GPTSnifferInferenceApproach/repos/
+
+# Ignore large analytical datasets locally so we don't break GitHub push limits
+Pydriller/*.csv
+Pydriller/*.json
+Pydriller/*.xlsx
+*.csv
+*.json
+*.xlsx
