@@ -18,8 +18,8 @@ df = df.dropna(subset=['author_date'])
 for col in ['insertions', 'deletions', 'files_count']:
     df[col] = pd.to_numeric(df[col].astype(str).str.replace(r'\[|\]', '', regex=True), errors='coerce').fillna(0)
 
-# Filter for the relevant years (e.g., 2015 - 2024 as shown in graph x-axis)
-df = df[(df['author_date'].dt.year >= 2015) & (df['author_date'].dt.year <= 2024)]
+# Filter for the relevant years (e.g., 2015 - 2025 as requested)
+df = df[(df['author_date'].dt.year >= 2015) & (df['author_date'].dt.year <= 2025)]
 
 print("Aggregating metrics per commit...")
 commit_df = df.groupby('hash').agg({
